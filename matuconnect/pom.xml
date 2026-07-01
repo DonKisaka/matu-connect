@@ -87,6 +87,19 @@
 			<artifactId>spring-boot-starter-webmvc-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+        <!-- Graph algorithms for matatu network routing (Dijkstra, coverage analysis) -->
+        <dependency>
+            <groupId>org.jgrapht</groupId>
+            <artifactId>jgrapht-core</artifactId>
+            <version>1.5.3</version>
+        </dependency>
+
+        <!-- CSV parsing for ingesting GTFS dataset files (routes.txt, stops.txt, etc.) -->
+        <dependency>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>5.12.0</version>
+        </dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
