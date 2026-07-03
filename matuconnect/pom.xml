@@ -43,6 +43,10 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-ollama</artifactId>
+        </dependency>
 		<dependency>
 			<groupId>org.springframework.ai</groupId>
 			<artifactId>spring-ai-starter-model-anthropic</artifactId>
@@ -87,14 +91,14 @@
 			<artifactId>spring-boot-starter-webmvc-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-        <!-- Graph algorithms for matatu network routing (Dijkstra, coverage analysis) -->
+        <!-- Graph algorithms for matatu network routing -->
         <dependency>
             <groupId>org.jgrapht</groupId>
             <artifactId>jgrapht-core</artifactId>
             <version>1.5.3</version>
         </dependency>
 
-        <!-- CSV parsing for ingesting GTFS dataset files (routes.txt, stops.txt, etc.) -->
+        <!-- CSV parsing for ingesting GTFS dataset files -->
         <dependency>
             <groupId>com.opencsv</groupId>
             <artifactId>opencsv</artifactId>
