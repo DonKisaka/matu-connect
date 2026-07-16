@@ -1,6 +1,7 @@
 package com.matuconnect.model;
 
 
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,7 +20,10 @@ import lombok.Setter;
  * duration/edge-weight calculations trivial (simple subtraction).
  */
 @Entity
-@Table(name = "stop_times")
+@Table(name = "stop_times", indexes = {
+        @Index(name = "idx_stop_times_trip_id", columnList = "trip_id"),
+        @Index(name = "idx_stop_times_stop_id", columnList = "stop_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor

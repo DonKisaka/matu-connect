@@ -1,6 +1,7 @@
 package com.matuconnect.model;
 
 
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,13 +13,14 @@ import lombok.Setter;
  * Each Route typically has two Trips — one per direction_id (0/1).
  */
 @Entity
-@Table(name = "trips")
+@Table(name = "trips", indexes = {
+        @Index(name = "idx_trips_route_id", columnList = "route_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Trip {
-
     @Id
     @Column(name = "trip_id", length = 50)
     private String tripId;
@@ -41,8 +43,6 @@ public class Trip {
 
     /**
      * Links to the geometry (path) for this trip in shapes.txt.
-     * Not a hard FK here since ShapePoint uses a composite key —
-     * joined manually in the ingestion/graph service instead.
      */
     @Column(name = "shape_id", length = 50)
     private String shapeId;
