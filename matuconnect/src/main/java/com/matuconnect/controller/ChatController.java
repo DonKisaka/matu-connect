@@ -20,12 +20,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/chat")
 @RequiredArgsConstructor
-class ChatController {
+public class ChatController {
 
     private final ChatClient chatClient;
 
     @PostMapping
-    ChatResponse chat(@RequestBody ChatRequest request) {
+    public ChatResponse chat(@RequestBody ChatRequest request) {
         String reply = chatClient.prompt()
                 .user(request.message())
                 .call()
