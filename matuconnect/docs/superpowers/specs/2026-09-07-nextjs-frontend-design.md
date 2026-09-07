@@ -236,8 +236,35 @@ The look is decided before components are built, in this order:
    chat FAB + drawer) against those tokens, then adapt.
 4. **Hand-assembly** — map overlay positioning and wiring.
 
-> Chosen style / palette / fonts: _to be filled in after step 1 runs
-> during implementation._
+> **Chosen style / palette / fonts** (from `ui-ux-pro-max`, applied in
+> `src/app/globals.css` + `src/app/layout.tsx`):
+>
+> - **Style direction:** "Data-Dense Dashboard" — blue-data + amber-highlight;
+>   multiple overlays/widgets, minimal padding, maximum data visibility,
+>   light + dark support.
+> - **Palette (light):** primary `#1E40AF`, primary-fg `#FFFFFF`,
+>   secondary/muted `#E9EEF6`, muted-fg `#475569`, background `#F8FAFC`,
+>   foreground `#1E3A8A`, card `#FFFFFF`, border/input/accent `#DBEAFE`,
+>   ring `#1E40AF`, destructive `#DC2626`, brand-accent (CTA) `#D97706`.
+> - **Palette (dark):** primary `#3B82F6`, primary-fg `#0F172A`,
+>   background `#0F172A`, foreground `#F8FAFC`, card `#1B2336`,
+>   secondary/accent `#1E293B`, muted `#272F42`, muted-fg `#94A3B8`,
+>   border/input `#334155`, ring `#3B82F6`, destructive `#EF4444`,
+>   brand-accent `#F59E0B`.
+> - **Marker tokens** (`--color-marker-*`, consumed by `lib/leaflet-icons.ts`):
+>   stop `#2563EB`, isolated `#DC2626`, poor `#D97706`, origin `#16A34A`,
+>   destination `#7C3AED` (light) / `#3B82F6`, `#F87171`, `#FBBF24`,
+>   `#4ADE80`, `#A78BFA` (dark).
+> - **Font pairing:** Fira Code (headings, mono, data figures) + Fira Sans
+>   (body / UI), loaded via `next/font/google` as `--font-fira-code` /
+>   `--font-fira-sans`.
+> - **Key UX guidelines applied:** marker categories pair colour with
+>   shape/label + legend (never colour alone); ≥44px touch targets and
+>   ≥8px spacing for map/overlay/chat controls; `min-h-dvh` + safe-area
+>   insets for the full-screen map and bottom chat drawer; explicit
+>   z-index scale (map 0 / overlay 10 / chat 20 / sheet 40 / toast 1000)
+>   so React overlays don't fight Leaflet panes; skeletons + typing
+>   indicator for >1s waits (stops load, coverage fetch, blocking AI call).
 
 ## Error handling
 

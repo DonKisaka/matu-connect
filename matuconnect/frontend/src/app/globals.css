@@ -1,26 +1,175 @@
+/*
+ * MatuConnect design tokens.
+ * Style direction: "Data-Dense Dashboard" (ui-ux-pro-max) — blue-data + amber-highlight.
+ * Palette: analytics-dashboard blue (#1E40AF primary) on blue-tinted slate neutrals,
+ *          amber (#D97706) as the highlight/CTA accent. Light + dark.
+ * Fonts: Fira Sans (body / UI) + Fira Code (headings, mono, data figures).
+ * Marker tokens (--color-marker-*) are consumed by src/lib/leaflet-icons.ts.
+ */
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-fira-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-fira-code), ui-monospace, SFMono-Regular, monospace;
+  --font-heading: var(--font-fira-code), ui-monospace, monospace;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Brand highlight + Leaflet marker semantics.
+   Non-inline so --color-* are emitted as real custom properties that
+   src/lib/leaflet-icons.ts can read at runtime; values track light/dark
+   via the raw vars defined in :root / .dark below. */
+@theme {
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-accent-foreground: var(--brand-accent-foreground);
+
+  --color-marker-stop: var(--marker-stop);
+  --color-marker-isolated: var(--marker-isolated);
+  --color-marker-poor: var(--marker-poor);
+  --color-marker-origin: var(--marker-origin);
+  --color-marker-destination: var(--marker-destination);
+}
+
+:root {
+  --background: #f8fafc;
+  --foreground: #1e3a8a;
+  --card: #ffffff;
+  --card-foreground: #1e3a8a;
+  --popover: #ffffff;
+  --popover-foreground: #1e3a8a;
+  --primary: #1e40af;
+  --primary-foreground: #ffffff;
+  --secondary: #e9eef6;
+  --secondary-foreground: #1e3a8a;
+  --muted: #e9eef6;
+  --muted-foreground: #475569;
+  --accent: #dbeafe;
+  --accent-foreground: #1e3a8a;
+  --destructive: #dc2626;
+  --border: #dbeafe;
+  --input: #dbeafe;
+  --ring: #1e40af;
+  --chart-1: #1e40af;
+  --chart-2: #3b82f6;
+  --chart-3: #60a5fa;
+  --chart-4: #d97706;
+  --chart-5: #f59e0b;
+  --radius: 0.625rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #1e3a8a;
+  --sidebar-primary: #1e40af;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e9eef6;
+  --sidebar-accent-foreground: #1e3a8a;
+  --sidebar-border: #dbeafe;
+  --sidebar-ring: #1e40af;
+
+  /* brand highlight / CTA */
+  --brand-accent: #d97706;
+  --brand-accent-foreground: #ffffff;
+
+  /* Leaflet marker semantics */
+  --marker-stop: #2563eb;         /* normal stop */
+  --marker-isolated: #dc2626;     /* isolated cluster stop */
+  --marker-poor: #d97706;         /* poorly-served stop */
+  --marker-origin: #16a34a;       /* trip origin */
+  --marker-destination: #7c3aed;  /* trip destination */
+}
+
+.dark {
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  --card: #1b2336;
+  --card-foreground: #f8fafc;
+  --popover: #1b2336;
+  --popover-foreground: #f8fafc;
+  --primary: #3b82f6;
+  --primary-foreground: #0f172a;
+  --secondary: #1e293b;
+  --secondary-foreground: #f8fafc;
+  --muted: #272f42;
+  --muted-foreground: #94a3b8;
+  --accent: #1e293b;
+  --accent-foreground: #f8fafc;
+  --destructive: #ef4444;
+  --border: #334155;
+  --input: #334155;
+  --ring: #3b82f6;
+  --chart-1: #60a5fa;
+  --chart-2: #3b82f6;
+  --chart-3: #1e40af;
+  --chart-4: #f59e0b;
+  --chart-5: #fbbf24;
+  --sidebar: #1b2336;
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: #3b82f6;
+  --sidebar-primary-foreground: #0f172a;
+  --sidebar-accent: #1e293b;
+  --sidebar-accent-foreground: #f8fafc;
+  --sidebar-border: #334155;
+  --sidebar-ring: #3b82f6;
+
+  /* brand highlight / CTA */
+  --brand-accent: #f59e0b;
+  --brand-accent-foreground: #0f172a;
+
+  /* Leaflet marker semantics (brightened for dark tiles) */
+  --marker-stop: #3b82f6;
+  --marker-isolated: #f87171;
+  --marker-poor: #fbbf24;
+  --marker-origin: #4ade80;
+  --marker-destination: #a78bfa;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
 }
