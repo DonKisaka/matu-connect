@@ -56,20 +56,13 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* Brand highlight + Leaflet marker semantics.
-   Non-inline so --color-* are emitted as real custom properties that
-   src/lib/leaflet-icons.ts can read at runtime; values track light/dark
-   via the raw vars defined in :root / .dark below. */
-@theme {
-  --color-brand-accent: var(--brand-accent);
-  --color-brand-accent-foreground: var(--brand-accent-foreground);
-
-  --color-marker-stop: var(--marker-stop);
-  --color-marker-isolated: var(--marker-isolated);
-  --color-marker-poor: var(--marker-poor);
-  --color-marker-origin: var(--marker-origin);
-  --color-marker-destination: var(--marker-destination);
-}
+/* Brand highlight + Leaflet marker semantics are declared as plain CSS
+   custom properties in :root / .dark below (NOT inside an @theme block).
+   Tailwind v4 tree-shakes unused @theme vars, which would drop
+   --color-marker-* from the compiled CSS since no bg-marker-* / text-marker-*
+   utility references them yet. src/lib/leaflet-icons.ts (Task 7) reads them
+   at runtime via getComputedStyle(document.documentElement), so they must
+   always be present and light/dark aware. */
 
 :root {
   --background: #f8fafc;
@@ -106,15 +99,15 @@
   --sidebar-ring: #1e40af;
 
   /* brand highlight / CTA */
-  --brand-accent: #d97706;
-  --brand-accent-foreground: #ffffff;
+  --color-brand-accent: #d97706;
+  --color-brand-accent-foreground: #ffffff;
 
-  /* Leaflet marker semantics */
-  --marker-stop: #2563eb;         /* normal stop */
-  --marker-isolated: #dc2626;     /* isolated cluster stop */
-  --marker-poor: #d97706;         /* poorly-served stop */
-  --marker-origin: #16a34a;       /* trip origin */
-  --marker-destination: #7c3aed;  /* trip destination */
+  /* Leaflet marker semantics (consumed by src/lib/leaflet-icons.ts) */
+  --color-marker-stop: #2563eb;         /* normal stop */
+  --color-marker-isolated: #dc2626;     /* isolated cluster stop */
+  --color-marker-poor: #d97706;         /* poorly-served stop */
+  --color-marker-origin: #16a34a;       /* trip origin */
+  --color-marker-destination: #7c3aed;  /* trip destination */
 }
 
 .dark {
@@ -151,15 +144,15 @@
   --sidebar-ring: #3b82f6;
 
   /* brand highlight / CTA */
-  --brand-accent: #f59e0b;
-  --brand-accent-foreground: #0f172a;
+  --color-brand-accent: #f59e0b;
+  --color-brand-accent-foreground: #0f172a;
 
   /* Leaflet marker semantics (brightened for dark tiles) */
-  --marker-stop: #3b82f6;
-  --marker-isolated: #f87171;
-  --marker-poor: #fbbf24;
-  --marker-origin: #4ade80;
-  --marker-destination: #a78bfa;
+  --color-marker-stop: #3b82f6;
+  --color-marker-isolated: #f87171;
+  --color-marker-poor: #fbbf24;
+  --color-marker-origin: #4ade80;
+  --color-marker-destination: #a78bfa;
 }
 
 @layer base {
