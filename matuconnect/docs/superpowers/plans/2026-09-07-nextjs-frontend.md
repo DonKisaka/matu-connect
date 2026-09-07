@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Frontend lives in `frontend/` at the project root (`C:\Users\Administrator\Downloads\matuconnect\matuconnect\frontend`).
-- Next.js 15, App Router, TypeScript, `src/` dir, import alias `@/*`, npm. Node v22.
+- Next.js 16 (installed via `create-next-app@latest`; `@latest` resolved to 16.3.4, React 19.2.8), App Router, TypeScript, `src/` dir, import alias `@/*`, npm. Node v22. (The plan was drafted saying "15"; `@latest` moved to 16. Ruled acceptable — every substantive requirement here uses App Router basics, `next/dynamic` client-component imports, `next/font`, and Tailwind v4, all identical on 16.)
 - Tailwind CSS **v4** — no `tailwind.config.js`; theme tokens live in `@theme` inside `src/app/globals.css`.
 - **Every** browser-side API call uses a relative URL beginning `/api/` — never `http://localhost:8080` in frontend code.
 - Backend is Spring Boot 4.1.0 — use `@org.springframework.test.context.bean.override.mockito.MockitoBean`, **not** the removed `@MockBean`.
