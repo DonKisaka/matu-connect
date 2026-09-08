@@ -13,3 +13,9 @@ if (!globalThis.ResizeObserver) {
 if (!Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = () => {};
 }
+
+// jsdom does not implement Element.prototype.getAnimations, which the
+// @base-ui/react ScrollArea viewport calls from a timeout after render.
+if (!Element.prototype.getAnimations) {
+  Element.prototype.getAnimations = () => [];
+}
