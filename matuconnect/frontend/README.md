@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MatuConnect Frontend
 
-## Getting Started
+Next.js 16 + Leaflet map and chat UI for the MatuConnect Nairobi matatu
+route advisor. Talks to the Spring Boot backend's REST API.
 
-First, run the development server:
+## Prerequisites
+
+- Node 22+
+- The MatuConnect backend running on `http://localhost:8080`
+  (`./mvnw spring-boot:run` from the repo root)
+
+## Setup
 
 ```bash
+cd frontend
+npm install
+cp .env.local.example .env.local   # optional: change BACKEND_URL
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## How API calls work
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The browser only calls relative `/api/*` URLs. `next.config.ts` rewrites
+those to `${BACKEND_URL:-http://localhost:8080}/api/*`, so there is no
+CORS configuration on either side.
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+| Command | Purpose |
+|---|---|
+| `npm run dev` | Dev server |
+| `npm run build` | Production build |
+| `npm test` | Vitest unit tests |
+| `npm run lint` | ESLint |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `src/app/page.tsx` — the single split-view page
+- `src/components/map/*` — Leaflet map, stop markers, route planner, coverage layer
+- `src/components/chat/*` — chat panel
+- `src/components/{MapOverlays,ChatDock}.tsx` — the overlay stack and the desktop/mobile chat dock
+- `src/lib/api.ts` — typed API client (all endpoints)
+- `src/hooks/*` — `useStops`, `useCoverage`
 
-## Deploy on Vercel
+## Known limitations
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- The route planner is textual — `/api/routes/suggest` returns stop
+  names only, no coordinates, so no route polyline is drawn.
+- Chat has no server-side memory; each message is independent.
+- Chat state is per-instance: the desktop panel and the mobile drawer
+  keep separate histories, so resizing across the `lg` breakpoint
+  mid-conversation starts fresh.

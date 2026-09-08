@@ -39,6 +39,11 @@ export default function Home() {
   return (
     <main className="flex h-screen w-screen overflow-hidden">
       <div className="relative flex-1">
+        {stopsStatus === "loading" && (
+          <div className="pointer-events-none absolute left-1/2 top-3 z-[1000] -translate-x-1/2 rounded bg-background/90 px-3 py-1 text-sm text-muted-foreground shadow">
+            Loading stops…
+          </div>
+        )}
         {stopsStatus === "error" && (
           <div className="absolute left-1/2 top-3 z-[1000] -translate-x-1/2 rounded bg-red-600 px-3 py-1 text-sm text-white">
             Could not load stops.{" "}
