@@ -25,7 +25,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className="h-full antialiased">
       <body
-        className={`${firaSans.variable} ${firaCode.variable} min-h-full flex flex-col`}
+        className={`${firaSans.variable} ${firaCode.variable} m-0 h-full overflow-hidden`}
       >
         {children}
       </body>
