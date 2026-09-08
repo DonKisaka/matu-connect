@@ -10,8 +10,7 @@ export function useStops(): { stops: StopDto[]; status: Status; reload: () => vo
   const [stops, setStops] = useState<StopDto[]>([]);
   const [status, setStatus] = useState<Status>("loading");
 
-  const load = useCallback(() => {
-    setStatus("loading");
+  const fetchStops = useCallback(() => {
     getStops()
       .then((data) => {
         setStops(data);
@@ -23,9 +22,14 @@ export function useStops(): { stops: StopDto[]; status: Status; reload: () => vo
       });
   }, []);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const reload = useCallback(() => {
+    setStatus("loading");
+    fetchStops();
+  }, [fetchStops]);
 
-  return { stops, status, reload: load };
+  useEffect(() => {
+    fetchStops();
+  }, [fetchStops]);
+
+  return { stops, status, reload };
 }
