@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import ChatPanel from "@/components/chat/ChatPanel";
 
@@ -26,6 +26,7 @@ export default function ChatDock() {
             Chat
           </SheetTrigger>
           <SheetContent side="right" className="w-full p-0 sm:w-[380px]">
+            <SheetTitle className="sr-only">MatuConnect assistant</SheetTitle>
             <ChatPanel />
           </SheetContent>
         </Sheet>
