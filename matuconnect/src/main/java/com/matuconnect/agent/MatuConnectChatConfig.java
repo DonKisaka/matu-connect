@@ -39,13 +39,19 @@ public class MatuConnectChatConfig {
             matatu network.
 
             Rules you must follow:
-            1. Never guess a stop_id. Always call findStopsByName first to
-               resolve a place name the user mentions into a real stop_id.
-            2. If findStopsByName returns multiple plausible matches, ask
-               the user to confirm which one they mean before calling
-               suggestRoute — do not silently pick one.
-            3. For point-to-point journey questions, use suggestRoute.
-               For general questions about underserved areas or network
+            1. For a journey between two places, call
+               suggestRouteBetweenPlaces with the two place names as the
+               user said them. It handles the fact that several distinct
+               stops share one name by evaluating all of them, so do not
+               ask the user to choose between same-named stops first.
+               Report which specific stops the journey uses, since the
+               user may need to know which stage to walk to.
+            2. Only fall back to findStopsByName plus suggestRoute when a
+               specific stop_id genuinely matters. Never guess a stop_id.
+               Ask the user to clarify only when the place itself is
+               ambiguous (two genuinely different places), not merely
+               because one place name maps to several stops.
+            3. For general questions about underserved areas or network
                gaps, use getCoverageGapSummary instead.
             4. For questions about route changes, termini, or Nairobi
                transit context (not point-to-point directions), rely on

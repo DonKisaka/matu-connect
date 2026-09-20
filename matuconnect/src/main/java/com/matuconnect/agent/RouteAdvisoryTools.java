@@ -64,9 +64,97 @@ public class RouteAdvisoryTools {
                 .toList();
     }
 
+    /**
+     * Upper bound on same-named stops considered per endpoint. Eleven stops
+     * match "Ngara" and fourteen match "Limuru", so an uncapped cross-product
+     * would be large; routing itself is cheap on a graph this size, but the
+     * cap keeps a single tool call predictable.
+     */
+    private static final int MAX_CANDIDATES_PER_PLACE = 8;
+
+    @Tool(description = "Find the best matatu journey between two places given by NAME, e.g. from " +
+            "'Ngara' to 'Limuru Terminus'. PREFER THIS over suggestRoute for ordinary journey questions. " +
+            "Nairobi's data contains several distinct stops sharing the same name, and only some of them " +
+            "are connected — this evaluates every served candidate pair and returns the best actual " +
+            "journey, so it will not wrongly report that no route exists merely because one same-named " +
+            "stop happens to be unconnected. It also reports which specific stops the journey uses.")
+    public PlaceRouteResponse suggestRouteBetweenPlaces(
+            @ToolParam(description = "Origin place or stop name, e.g. 'Ngara'") String originName,
+            @ToolParam(description = "Destination place or stop name, e.g. 'Limuru Terminus'") String destinationName) {
+
+        List<Stop> origins = stopSearchService.searchServedStops(originName).stream()
+                .limit(MAX_CANDIDATES_PER_PLACE).toList();
+        List<Stop> destinations = stopSearchService.searchServedStops(destinationName).stream()
+                .limit(MAX_CANDIDATES_PER_PLACE).toList();
+
+        if (origins.isEmpty() || destinations.isEmpty()) {
+            log.info("No served stops matched origin '{}' ({}) or destination '{}' ({}).",
+                    originName, origins.size(), destinationName, destinations.size());
+            return new PlaceRouteResponse(false, null, null, null, null,
+                    List.of(), List.of(), 0, 0, 0);
+        }
+
+        RouteResult best = null;
+        Stop bestOrigin = null;
+        Stop bestDestination = null;
+        int evaluated = 0;
+
+        for (Stop origin : origins) {
+            for (Stop destination : destinations) {
+                if (origin.getStopId().equals(destination.getStopId())) {
+                    continue;
+                }
+                evaluated++;
+                Optional<RouteResult> candidate =
+                        routingService.findShortestRoute(origin.getStopId(), destination.getStopId());
+                if (candidate.isEmpty()) {
+                    continue;
+                }
+                if (best == null || isPreferable(candidate.get(), best)) {
+                    best = candidate.get();
+                    bestOrigin = origin;
+                    bestDestination = destination;
+                }
+            }
+        }
+
+        if (best == null) {
+            log.info("No route between '{}' and '{}' across {} candidate pairs.",
+                    originName, destinationName, evaluated);
+            return new PlaceRouteResponse(false, null, null, null, null,
+                    List.of(), List.of(), 0, 0, evaluated);
+        }
+
+        List<String> stopNames = best.stopIds().stream().map(this::resolveStopName).toList();
+        List<String> routeNames = best.routeIdsUsed().stream().map(this::resolveRouteName).toList();
+        int minutes = (int) Math.ceil(best.totalTravelTimeSeconds() / 60.0);
+
+        log.info("Best journey '{}' -> '{}': {} ({} transfers) via {}/{} of {} pairs.",
+                originName, destinationName, routeNames, best.transferCount(),
+                bestOrigin.getStopId(), bestDestination.getStopId(), evaluated);
+
+        return new PlaceRouteResponse(true,
+                bestOrigin.getStopName(), bestOrigin.getStopId(),
+                bestDestination.getStopName(), bestDestination.getStopId(),
+                stopNames, routeNames, minutes, best.transferCount(), evaluated);
+    }
+
+    /**
+     * Fewer transfers wins, because that is what commuters actually optimise
+     * for; ride time only breaks a tie. Ordering by time first would favour
+     * journeys that shave a few minutes by changing matatu three more times.
+     */
+    private static boolean isPreferable(RouteResult candidate, RouteResult incumbent) {
+        if (candidate.transferCount() != incumbent.transferCount()) {
+            return candidate.transferCount() < incumbent.transferCount();
+        }
+        return candidate.totalTravelTimeSeconds() < incumbent.totalTravelTimeSeconds();
+    }
+
     @Tool(description = "Suggest the best matatu route between two stops, identified by stop_id " +
-            "(obtained from findStopsByName). Returns the ordered stops, the routes to board, " +
-            "estimated ride time in minutes, and how many transfers are required.")
+            "(obtained from findStopsByName). Use only when a specific stop_id matters — for an " +
+            "ordinary journey question prefer suggestRouteBetweenPlaces. Returns the ordered stops, " +
+            "the routes to board, estimated ride time in minutes, and how many transfers are required.")
     public RouteAdvisoryResponse suggestRoute(
             @ToolParam(description = "stop_id of the origin, from findStopsByName") String originStopId,
             @ToolParam(description = "stop_id of the destination, from findStopsByName") String destinationStopId) {

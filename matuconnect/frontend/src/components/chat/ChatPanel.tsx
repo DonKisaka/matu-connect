@@ -11,10 +11,13 @@ export default function ChatPanel({ className }: { className?: string }) {
   const [pending, setPending] = useState(false);
 
   async function handleSend(text: string) {
+    // `messages` still holds the turns before this one, which is exactly the
+    // history the agent needs — the new message is sent separately.
+    const priorTurns = messages;
     setMessages((prev) => [...prev, { role: "user", content: text }]);
     setPending(true);
     try {
-      const { reply } = await sendChatMessage(text);
+      const { reply } = await sendChatMessage(text, priorTurns);
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
     } catch {
       setMessages((prev) => [...prev, { role: "error", content: "Something went wrong. Try again." }]);

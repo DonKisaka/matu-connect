@@ -1,4 +1,4 @@
-import type { CoverageDto, RouteAdviceDto, StopDto, ChatResponse } from "@/lib/types";
+import type { CoverageDto, RouteAdviceDto, StopDto, ChatResponse, ChatMessage } from "@/lib/types";
 
 export class ApiError extends Error {
   readonly status: number;
@@ -37,9 +37,21 @@ export function getCoverage(): Promise<CoverageDto> {
   return request<CoverageDto>("/api/coverage");
 }
 
-export function sendChatMessage(message: string): Promise<ChatResponse> {
+/**
+ * The backend keeps no session, so prior turns travel with each request.
+ * Locally-rendered "error" bubbles are stripped: they are UI state, not
+ * anything the agent said, and replaying them would confuse it.
+ */
+export function sendChatMessage(
+  message: string,
+  history: ChatMessage[] = [],
+): Promise<ChatResponse> {
+  const replayable = history
+    .filter((m) => m.role === "user" || m.role === "assistant")
+    .map((m) => ({ role: m.role, content: m.content }));
+
   return request<ChatResponse>("/api/chat", {
     method: "POST",
-    body: JSON.stringify({ message }),
+    body: JSON.stringify({ message, history: replayable }),
   });
 }
