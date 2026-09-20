@@ -44,10 +44,10 @@ public class KnowledgeBaseIngestionService {
     @Value("classpath:/knowledge-base/nairobi_knowledge_base.md")
     private Resource generalKnowledgeBaseResource;
 
-    @Value("classpath:/knowledge-base/nairobi_route_updates_2024_2026.md")
+    @Value("classpath:/knowledge-base/nairobi_route_updates.md")
     private Resource routeUpdatesResource;
 
-    @Value("classpath:/knowledge-base/nairobi_expressway_matatu_operations_2026.md")
+    @Value("classpath:/knowledge-base/nairobi_expressway_matatu_operations.md")
     private Resource expresswayOperationsResource;
 
     public void ingestAll() {

@@ -5,6 +5,7 @@ import com.matuconnect.graph.CoverageAnalysisService;
 import com.matuconnect.graph.CoverageGapResult;
 import com.matuconnect.graph.RouteResult;
 import com.matuconnect.graph.RoutingService;
+import com.matuconnect.graph.StopSearchService;
 import com.matuconnect.model.Route;
 import com.matuconnect.model.Stop;
 import com.matuconnect.repository.RouteRepository;
@@ -46,6 +47,7 @@ public class RouteAdvisoryTools {
     private final RouteRepository routeRepository;
     private final RoutingService routingService;
     private final CoverageAnalysisService coverageAnalysisService;
+    private final StopSearchService stopSearchService;
 
     @Tool(description = "Search for matatu stops by name or partial name (case-insensitive). " +
             "Always use this first to resolve a place name the user mentions into a stop_id " +
@@ -53,7 +55,10 @@ public class RouteAdvisoryTools {
     public List<StopSummary> findStopsByName(
             @ToolParam(description = "Partial or full stop name, e.g. 'Kencom' or 'Odeon'") String query) {
 
-        return stopRepository.findByStopNameContainingIgnoreCase(query).stream()
+        // Only stops some trip actually serves — an unserved stop can never
+        // yield a route, and handing one to the model produces a confident
+        // "no route exists" answer that is simply wrong. See StopSearchService.
+        return stopSearchService.searchServedStops(query).stream()
                 .map(stop -> new StopSummary(stop.getStopId(), stop.getStopName(), stop.getStopLat(), stop.getStopLon()))
                 .limit(10)
                 .toList();

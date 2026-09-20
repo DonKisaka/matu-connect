@@ -7,12 +7,15 @@ services:
       POSTGRES_USER: matuconnectuser
       POSTGRES_PASSWORD: matuconnectpassword
     ports:
-      - "5432:5432"
+      # Host 5433 -> container 5432: a native PostgreSQL install already
+      # occupies 5432 on this machine, so the container is mapped alongside
+      # it rather than requiring that service to be stopped.
+      - "5433:5432"
     volumes:
       - matuconnect-pgdata:/var/lib/postgresql/data
       - ./init-extensions.sql:/docker-entrypoint-initdb.d/init-extensions.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U matuconnect"]
+      test: ["CMD-SHELL", "pg_isready -U matuconnectuser -d matuconnect"]
       interval: 5s
       timeout: 5s
       retries: 10

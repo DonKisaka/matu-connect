@@ -81,6 +81,16 @@ public class MatatuGraphBuilder {
                     continue;
                 }
 
+                if (fromStopId.equals(toStopId)) {
+                    // The feed contains at least one trip listing the same stop twice
+                    // in consecutive stop_sequence positions. A self-loop carries no
+                    // routing information, and DirectedWeightedMultigraph rejects one
+                    // outright (IllegalArgumentException), which would abort startup.
+                    log.warn("Skipping self-loop on trip {} at stop {} (duplicate consecutive stop in GTFS).",
+                            trip.getTripId(), fromStopId);
+                    continue;
+                }
+
                 int travelTimeSeconds = to.getArrivalTime() - from.getDepartureTime();
                 if (travelTimeSeconds < 0) {
                     // Guards against malformed GTFS rows (e.g. out-of-order times).
