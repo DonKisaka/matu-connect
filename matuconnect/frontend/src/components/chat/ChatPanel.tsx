@@ -26,7 +26,11 @@ export default function ChatPanel({ className }: { className?: string }) {
   return (
     <div className={`flex h-full flex-col ${className ?? ""}`}>
       <header className="border-b p-3 font-semibold">MatuConnect assistant</header>
-      <MessageList messages={messages} pending={pending} />
+      <MessageList
+        messages={messages}
+        pending={pending}
+        onPickStarter={pending ? undefined : handleSend}
+      />
       <ChatInput disabled={pending} onSend={handleSend} />
     </div>
   );
