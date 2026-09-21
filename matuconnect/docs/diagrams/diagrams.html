@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>MatuConnect — Chapter 4 Diagrams</title>
+<style>
+  body { margin: 0; background: #ffffff; font-family: "Times New Roman", Times, serif; }
+  .sheet { padding: 28px 32px 36px; background: #ffffff; }
+  h2 { font-size: 18px; margin: 0 0 4px; text-align: center; text-transform: uppercase; letter-spacing: .5px; }
+  .caption { font-size: 12px; text-align: center; color: #333; margin: 0 0 18px; }
+  .diagram { display: flex; justify-content: center; }
+  .mermaid { font-family: "Segoe UI", Arial, sans-serif; }
+  .toolbar { display: flex; justify-content: center; gap: 10px; margin-top: 14px; }
+  .toolbar button {
+    font-family: "Segoe UI", Arial, sans-serif; font-size: 13px;
+    padding: 7px 14px; border: 1px solid #1E40AF; background: #1E40AF; color: #fff;
+    border-radius: 6px; cursor: pointer;
+  }
+  .toolbar button.secondary { background: #fff; color: #1E40AF; }
+  .toolbar button:hover { filter: brightness(1.08); }
+  .hint {
+    max-width: 760px; margin: 0 auto 8px; padding: 10px 14px; border-left: 4px solid #D97706;
+    background: #fff8ec; font-family: "Segoe UI", Arial, sans-serif; font-size: 13px; color: #333;
+  }
+  @media print { .toolbar, .hint { display: none !important; } .sheet { page-break-after: always; } }
+</style>
+</head>
+<body>
+
+<p class="hint">
+  Each diagram below has a <strong>Download PNG</strong> button (300&nbsp;DPI-ish, 3&times; scale) —
+  use those images directly in Chapter 4. <strong>Ctrl&nbsp;+&nbsp;P → Save as PDF</strong> also works
+  and puts each figure on its own page. This bar and the buttons are hidden when printing.
+</p>
+
+<div class="sheet" id="sheet-context">
+  <h2>Figure 4.1: Context Diagram</h2>
+  <p class="caption">MatuConnect as a single process, showing external entities and the data exchanged with each.</p>
+  <div class="diagram">
+  <pre class="mermaid">
+flowchart TB
+    COMMUTER(["Commuter"])
+    ADMIN(["Administrator"])
+    GTFS[/"Digital Matatus<br/>GTFS Dataset"/]
+    CLAUDE[/"Anthropic Claude API"/]
+    OLLAMA[/"Ollama Embedding<br/>Service"/]
+    OSM[/"OpenStreetMap<br/>Tile Service"/]
+
+    SYS(("0<br/>MatuConnect<br/>System"))
+
+    COMMUTER -->|"journey request, natural-language query"| SYS
+    SYS -->|"route advice, network map, AI answer"| COMMUTER
+
+    ADMIN -->|"route data updates, report request"| SYS
+    SYS -->|"usage statistics, coverage &amp; route reports"| ADMIN
+
+    GTFS -->|"stops, routes, trips, stop_times, shapes"| SYS
+    SYS -->|"prompt + tool results"| CLAUDE
+    CLAUDE -->|"grounded reply"| SYS
+    SYS -->|"knowledge-base text"| OLLAMA
+    OLLAMA -->|"embedding vectors"| SYS
+    OSM -->|"base map tiles"| SYS
+
+    classDef ext fill:#eef2f7,stroke:#33475b,stroke-width:1px,color:#111;
+    classDef sys fill:#1E40AF,stroke:#152c7a,stroke-width:2px,color:#fff;
+    class COMMUTER,ADMIN,GTFS,CLAUDE,OLLAMA,OSM ext;
+    class SYS sys;
+  </pre>
+  </div>
+</div>
+
+<div class="sheet" id="sheet-dfd">
+  <h2>Figure 4.2: Data Flow Diagram (Level 1)</h2>
+  <p class="caption">Decomposition of the MatuConnect process into its major sub-processes and data stores.</p>
+  <div class="diagram">
+  <pre class="mermaid">
+flowchart TB
+    COMMUTER(["Commuter"])
+    ADMIN(["Administrator"])
+    GTFSSRC[/"GTFS Dataset"/]
+    LLM[/"Claude API"/]
+    EMB[/"Ollama Embeddings"/]
+
+    P1("1.0<br/>Ingest GTFS Data")
+    P2("2.0<br/>Build Network Graph")
+    P3("3.0<br/>Plan Journey")
+    P4("4.0<br/>Analyse Coverage")
+    P5("5.0<br/>Answer NL Query")
+    P6("6.0<br/>Authenticate User")
+    P7("7.0<br/>Generate Reports")
+
+    D1[("D1 · Transit Data")]
+    D2[("D2 · Knowledge Base")]
+    D3[("D3 · Users")]
+    D4[("D4 · Journey Searches")]
+
+    GTFSSRC --> P1
+    P1 -->|"stops, routes, trips,<br/>stop_times, shapes"| D1
+    D1 --> P2
+    P2 -->|"in-memory graph<br/>4284 nodes / 7260 edges"| P3
+    P2 --> P4
+
+    COMMUTER -->|"origin, destination"| P3
+    P3 -->|"route, time, transfers"| COMMUTER
+    P3 -->|"search record"| D4
+
+    COMMUTER -->|"question"| P5
+    P5 --> LLM
+    LLM --> P5
+    P5 -->|"retrieval query"| D2
+    D2 -->|"matching chunks"| P5
+    P5 -->|"tool call"| P3
+    P5 -->|"tool call"| P4
+    P5 -->|"grounded answer"| COMMUTER
+    EMB -->|"vectors"| D2
+
+    P4 -->|"isolated clusters,<br/>poorly-served stops"| COMMUTER
+
+    COMMUTER -->|"credentials"| P6
+    ADMIN -->|"credentials"| P6
+    P6 <-->|"verify / role"| D3
+
+    ADMIN -->|"report request"| P7
+    D4 --> P7
+    D3 --> P7
+    P4 --> P7
+    P7 -->|"most-searched routes,<br/>usage statistics,<br/>coverage report"| ADMIN
+    D4 -->|"personal history"| COMMUTER
+
+    classDef ext fill:#eef2f7,stroke:#33475b,color:#111;
+    classDef proc fill:#1E40AF,stroke:#152c7a,color:#fff;
+    classDef store fill:#fff6e5,stroke:#D97706,color:#111;
+    class COMMUTER,ADMIN,GTFSSRC,LLM,EMB ext;
+    class P1,P2,P3,P4,P5,P6,P7 proc;
+    class D1,D2,D3,D4 store;
+  </pre>
+  </div>
+</div>
+
+<div class="sheet" id="sheet-er">
+  <h2>Figure 4.3: Entity Relationship Diagram</h2>
+  <p class="caption">Database structure. Transit entities derive from the GTFS feed; users and journey searches support roles, history and reporting.</p>
+  <div class="diagram">
+  <pre class="mermaid">
+erDiagram
+    STOPS ||--o{ STOP_TIMES : "is visited by"
+    STOPS ||--o| STOPS : "parent_station"
+    ROUTES ||--o{ TRIPS : "operates"
+    TRIPS ||--|{ STOP_TIMES : "consists of"
+    USERS ||--o{ JOURNEY_SEARCHES : "performs"
+    STOPS ||--o{ JOURNEY_SEARCHES : "is origin of"
+    STOPS ||--o{ JOURNEY_SEARCHES : "is destination of"
+
+    STOPS {
+        varchar stop_id PK
+        varchar stop_name
+        double stop_lat
+        double stop_lon
+        int location_type
+        varchar parent_station FK
+    }
+    ROUTES {
+        varchar route_id PK
+        varchar agency_id
+        varchar route_short_name
+        varchar route_long_name
+        int route_type
+    }
+    TRIPS {
+        varchar trip_id PK
+        varchar route_id FK
+        varchar service_id
+        varchar trip_headsign
+        int direction_id
+        varchar shape_id
+    }
+    STOP_TIMES {
+        varchar trip_id PK_FK
+        int stop_sequence PK
+        varchar stop_id FK
+        int arrival_time
+        int departure_time
+    }
+    SHAPES {
+        varchar shape_id PK
+        int shape_pt_sequence PK
+        double shape_pt_lat
+        double shape_pt_lon
+    }
+    USERS {
+        bigint id PK
+        varchar username UK
+        varchar password_hash
+        varchar role
+        timestamp created_at
+    }
+    JOURNEY_SEARCHES {
+        bigint id PK
+        bigint user_id FK
+        varchar origin_stop_id FK
+        varchar destination_stop_id FK
+        boolean route_found
+        int transfer_count
+        int estimated_minutes
+        timestamp searched_at
+    }
+    VECTOR_STORE {
+        uuid id PK
+        text content
+        jsonb metadata
+        vector embedding
+    }
+  </pre>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: "base",
+    themeVariables: {
+      primaryColor: "#1E40AF",
+      primaryTextColor: "#ffffff",
+      lineColor: "#33475b",
+      fontFamily: "Segoe UI, Arial, sans-serif",
+      fontSize: "14px"
+    },
+    flowchart: { curve: "basis", nodeSpacing: 45, rankSpacing: 55, useMaxWidth: false },
+    er: { useMaxWidth: false }
+  });
+
+  const FIGURES = [
+    { sheet: "sheet-context", file: "figure-4-1-context-diagram.png" },
+    { sheet: "sheet-dfd",     file: "figure-4-2-dfd-level-1.png" },
+    { sheet: "sheet-er",      file: "figure-4-3-er-diagram.png" },
+  ];
+
+  /**
+   * Serialises a rendered Mermaid SVG to a PNG at `scale`x, so the figure
+   * stays sharp when dropped into Word at page width. Mermaid output is pure
+   * vector + text with no external images, so the canvas is never tainted.
+   */
+  function exportSvgAsPng(svg, filename, scale = 3) {
+    const box = svg.getBoundingClientRect();
+    const width = Math.ceil(box.width);
+    const height = Math.ceil(box.height);
+
+    const clone = svg.cloneNode(true);
+    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    clone.setAttribute("width", width);
+    clone.setAttribute("height", height);
+    if (!clone.getAttribute("viewBox")) {
+      clone.setAttribute("viewBox", `0 0 ${width} ${height}`);
+    }
+    // White backdrop: Word placing a transparent PNG on a coloured background
+    // would otherwise show the page colour through the diagram.
+    const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    bg.setAttribute("width", "100%");
+    bg.setAttribute("height", "100%");
+    bg.setAttribute("fill", "#ffffff");
+    clone.insertBefore(bg, clone.firstChild);
+
+    const blob = new Blob([new XMLSerializer().serializeToString(clone)],
+                          { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = width * scale;
+      canvas.height = height * scale;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+
+      canvas.toBlob((png) => {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(png);
+        a.download = filename;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      }, "image/png");
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      alert("Could not export this figure. Use Ctrl+P → Save as PDF instead.");
+    };
+    img.src = url;
+  }
+
+  // Mermaid renders asynchronously; wait until each sheet actually has an SVG.
+  function whenRendered(done, attempts = 0) {
+    const ready = FIGURES.every(f => document.querySelector(`#${f.sheet} svg`));
+    if (ready) return done();
+    if (attempts > 100) return;
+    setTimeout(() => whenRendered(done, attempts + 1), 100);
+  }
+
+  whenRendered(() => {
+    for (const fig of FIGURES) {
+      const sheet = document.getElementById(fig.sheet);
+      const svg = sheet.querySelector("svg");
+
+      const bar = document.createElement("div");
+      bar.className = "toolbar";
+
+      const png = document.createElement("button");
+      png.textContent = "Download PNG";
+      png.onclick = () => exportSvgAsPng(svg, fig.file);
+
+      const svgBtn = document.createElement("button");
+      svgBtn.className = "secondary";
+      svgBtn.textContent = "Download SVG";
+      svgBtn.onclick = () => {
+        const clone = svg.cloneNode(true);
+        clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+        const blob = new Blob([new XMLSerializer().serializeToString(clone)],
+                              { type: "image/svg+xml;charset=utf-8" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = fig.file.replace(/\.png$/, ".svg");
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      };
+
+      bar.append(png, svgBtn);
+      sheet.appendChild(bar);
+    }
+  });
+</script>
+</body>
+</html>
