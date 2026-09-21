@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import MapView from "@/components/map/MapView";
 import MapOverlays from "@/components/MapOverlays";
 import ChatDock from "@/components/ChatDock";
+import AccountMenu from "@/components/AccountMenu";
 import { useStops } from "@/hooks/useStops";
 import { useCoverage } from "@/hooks/useCoverage";
 import type { StopDto } from "@/lib/types";
@@ -52,6 +53,12 @@ export default function Home() {
             </button>
           </div>
         )}
+        {/* Above the map's own z-[1000] overlays, below the chat sheet's
+            z-[1100], so it never covers or is covered by either. */}
+        <div className="absolute top-3 right-3 z-[1050]">
+          <AccountMenu />
+        </div>
+
         <MapOverlays
           showCoverage={showCoverage}
           coverageData={showCoverage ? coverage.data : null}
