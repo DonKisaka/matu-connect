@@ -6,6 +6,7 @@ import com.matuconnect.model.JourneySearch;
 import com.matuconnect.model.Stop;
 import com.matuconnect.repository.JourneySearchRepository;
 import com.matuconnect.repository.StopRepository;
+import com.matuconnect.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ public class JourneySearchLogService {
 
     private final JourneySearchRepository journeySearchRepository;
     private final StopRepository stopRepository;
+    private final UserRepository userRepository;
 
     /**
      * @param username the signed-in user, or null for an anonymous search.
@@ -64,8 +66,13 @@ public class JourneySearchLogService {
                 search.setTransferCount(route.transferCount());
                 search.setEstimatedMinutes((int) Math.ceil(route.totalTravelTimeSeconds() / 60.0));
             });
-            // username is accepted now so the call sites are already correct;
-            // resolving it to a User row arrives with authentication.
+
+            // Signed-out searches are still recorded, just unattributed — see
+            // the class comment. An unknown username is treated the same way
+            // rather than dropping the row.
+            if (username != null) {
+                userRepository.findByUsername(username).ifPresent(search::setUser);
+            }
 
             journeySearchRepository.save(search);
         } catch (RuntimeException e) {

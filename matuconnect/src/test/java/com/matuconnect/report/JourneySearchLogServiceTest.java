@@ -3,8 +3,11 @@ package com.matuconnect.report;
 import com.matuconnect.graph.RouteResult;
 import com.matuconnect.model.JourneySearch;
 import com.matuconnect.model.Stop;
+import com.matuconnect.model.Role;
+import com.matuconnect.model.User;
 import com.matuconnect.repository.JourneySearchRepository;
 import com.matuconnect.repository.StopRepository;
+import com.matuconnect.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -24,6 +27,7 @@ class JourneySearchLogServiceTest {
 
     private JourneySearchRepository journeySearchRepository;
     private StopRepository stopRepository;
+    private UserRepository userRepository;
     private JourneySearchLogService service;
 
     private static Stop stop(String id, String name) {
@@ -39,7 +43,8 @@ class JourneySearchLogServiceTest {
     void setUp() {
         journeySearchRepository = mock(JourneySearchRepository.class);
         stopRepository = mock(StopRepository.class);
-        service = new JourneySearchLogService(journeySearchRepository, stopRepository);
+        userRepository = mock(UserRepository.class);
+        service = new JourneySearchLogService(journeySearchRepository, stopRepository, userRepository);
 
         when(stopRepository.findById("0110IRT")).thenReturn(Optional.of(stop("0110IRT", "Ngara")));
         when(stopRepository.findById("0113LMD")).thenReturn(Optional.of(stop("0113LMD", "Limuru Terminus")));
@@ -83,6 +88,30 @@ class JourneySearchLogServiceTest {
     void recordsAnonymousSearchesWithNoUser() {
         service.record("0110IRT", "0113LMD", Optional.empty(), null);
 
+        assertThat(captureSaved().getUser()).isNull();
+    }
+
+    @Test
+    void attributesTheSearchToTheSignedInUser() {
+        User donald = new User();
+        donald.setId(7L);
+        donald.setUsername("donald");
+        donald.setRole(Role.COMMUTER);
+        when(userRepository.findByUsername("donald")).thenReturn(Optional.of(donald));
+
+        service.record("0110IRT", "0113LMD", Optional.empty(), "donald");
+
+        assertThat(captureSaved().getUser()).isSameAs(donald);
+    }
+
+    @Test
+    void stillRecordsWhenTheUsernameIsUnknown() {
+        when(userRepository.findByUsername("ghost")).thenReturn(Optional.empty());
+
+        service.record("0110IRT", "0113LMD", Optional.empty(), "ghost");
+
+        // The row is worth keeping for the aggregate reports even though it
+        // cannot be attributed to anyone.
         assertThat(captureSaved().getUser()).isNull();
     }
 

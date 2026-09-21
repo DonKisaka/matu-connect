@@ -9,10 +9,38 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * The backend protects state-changing requests with the double-submit cookie
+ * pattern: it publishes a readable `XSRF-TOKEN` cookie which must be echoed
+ * back in `X-XSRF-TOKEN`. Safe methods are exempt, so only non-GET requests
+ * need it.
+ */
+function csrfToken(): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS", "TRACE"]);
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const method = (init?.method ?? "GET").toUpperCase();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...((init?.headers as Record<string, string>) ?? {}),
+  };
+
+  if (!SAFE_METHODS.has(method)) {
+    const token = csrfToken();
+    if (token) headers["X-XSRF-TOKEN"] = token;
+  }
+
   const res = await fetch(path, {
     ...init,
-    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+    headers,
+    // Session and CSRF cookies must ride along. Same-origin is the default,
+    // but stating it keeps the intent obvious.
+    credentials: "same-origin",
   });
   if (!res.ok) {
     throw new ApiError(res.status, `Request to ${path} failed with ${res.status}`);

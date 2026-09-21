@@ -1,7 +1,10 @@
 package com.matuconnect.controller;
 
 
+import com.matuconnect.model.JourneySearch;
 import com.matuconnect.report.PopularRoute;
+
+import java.time.Instant;
 
 /**
  * REST-facing shapes for the reporting endpoints. Kept separate from
@@ -50,4 +53,33 @@ record UsageStatsDto(
         int mainNetworkSize,
         int isolatedClusterCount
 ) {
+}
+
+/**
+ * One entry in a user's journey history. Stop names are resolved here rather
+ * than left as ids, because this is read by the person who made the search.
+ */
+record JourneySearchDto(
+        Long id,
+        String originStopId,
+        String originStopName,
+        String destinationStopId,
+        String destinationStopName,
+        boolean routeFound,
+        Integer transferCount,
+        Integer estimatedMinutes,
+        Instant searchedAt
+) {
+    static JourneySearchDto from(JourneySearch search) {
+        return new JourneySearchDto(
+                search.getId(),
+                search.getOriginStop().getStopId(),
+                search.getOriginStop().getStopName(),
+                search.getDestinationStop().getStopId(),
+                search.getDestinationStop().getStopName(),
+                search.isRouteFound(),
+                search.getTransferCount(),
+                search.getEstimatedMinutes(),
+                search.getSearchedAt());
+    }
 }

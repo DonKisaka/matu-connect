@@ -1,5 +1,7 @@
 package com.matuconnect.controller;
 
+import org.springframework.context.annotation.Import;
+import com.matuconnect.security.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.ai.chat.client.ChatClient;
@@ -18,11 +20,13 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ChatController.class)
+@Import(SecurityConfig.class)
 class ChatControllerTest {
 
     @Autowired
@@ -52,7 +56,7 @@ class ChatControllerTest {
     void returnsAgentReplyForAMessage() throws Exception {
         stubChatClient("Board route 46 at Kencom heading west.");
 
-        mockMvc.perform(post("/api/chat")
+        mockMvc.perform(post("/api/chat").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"message\":\"How do I get to Westlands from Kencom?\"}"))
                 .andExpect(status().isOk())
@@ -63,7 +67,7 @@ class ChatControllerTest {
     void sendsOnlyTheNewMessageWhenNoHistoryIsSupplied() throws Exception {
         ChatClient.ChatClientRequestSpec requestSpec = stubChatClient("ok");
 
-        mockMvc.perform(post("/api/chat")
+        mockMvc.perform(post("/api/chat").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"message\":\"Hello\"}"))
                 .andExpect(status().isOk());
@@ -78,7 +82,7 @@ class ChatControllerTest {
     void replaysPriorTurnsSoTheAgentCanResolveBackReferences() throws Exception {
         ChatClient.ChatClientRequestSpec requestSpec = stubChatClient("Taking the first option.");
 
-        mockMvc.perform(post("/api/chat")
+        mockMvc.perform(post("/api/chat").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -106,7 +110,7 @@ class ChatControllerTest {
 
         // The frontend renders local-only "error" bubbles; those are UI state,
         // not something the agent ever said, so they must not be replayed.
-        mockMvc.perform(post("/api/chat")
+        mockMvc.perform(post("/api/chat").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -127,7 +131,7 @@ class ChatControllerTest {
 
     @Test
     void returnsBadRequestWhenBodyIsMissing() throws Exception {
-        mockMvc.perform(post("/api/chat").contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(post("/api/chat").with(csrf()).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
 }

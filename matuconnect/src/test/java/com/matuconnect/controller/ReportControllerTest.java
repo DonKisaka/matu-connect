@@ -1,5 +1,7 @@
 package com.matuconnect.controller;
 
+import org.springframework.context.annotation.Import;
+import com.matuconnect.security.SecurityConfig;
 import com.matuconnect.graph.CoverageAnalysisService;
 import com.matuconnect.graph.CoverageGapResult;
 import com.matuconnect.graph.IsolatedCluster;
@@ -12,6 +14,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -25,7 +28,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Reporting is administrator-only, so every case here runs as one. The rules
+ * themselves — that a commuter and an anonymous caller are refused — are
+ * covered in {@link SecurityRulesTest}.
+ */
 @WebMvcTest(ReportController.class)
+@Import(SecurityConfig.class)
+@WithMockUser(roles = "ADMIN")
 class ReportControllerTest {
 
     @Autowired
