@@ -3,11 +3,13 @@ package com.matuconnect.controller;
 
 import com.matuconnect.graph.RouteResult;
 import com.matuconnect.graph.RoutingService;
+import com.matuconnect.report.JourneySearchLogService;
 import com.matuconnect.model.Route;
 import com.matuconnect.model.Stop;
 import com.matuconnect.repository.RouteRepository;
 import com.matuconnect.repository.StopRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -37,12 +39,22 @@ public class RouteController {
     private final RoutingService routingService;
     private final StopRepository stopRepository;
     private final RouteRepository routeRepository;
+    private final JourneySearchLogService journeySearchLogService;
 
     @GetMapping("/suggest")
     public RouteAdviceDto suggestRoute(@RequestParam String originStopId,
-                                       @RequestParam String destinationStopId) {
+                                       @RequestParam String destinationStopId,
+                                       Authentication authentication) {
 
         Optional<RouteResult> result = routingService.findShortestRoute(originStopId, destinationStopId);
+
+        // Recorded for the usage reports and journey history. Deliberately also
+        // recorded when nothing was found: a pair people keep asking for and the
+        // network cannot serve is demand-weighted evidence of a coverage gap.
+        // `authentication` is null for a signed-out caller, which is allowed —
+        // the search is then recorded unattributed. The call cannot throw.
+        String username = authentication != null ? authentication.getName() : null;
+        journeySearchLogService.record(originStopId, destinationStopId, result, username);
 
         if (result.isEmpty()) {
             return new RouteAdviceDto(false, List.of(), List.of(), 0, 0);
