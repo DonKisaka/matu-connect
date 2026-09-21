@@ -46,9 +46,40 @@ describe("api client", () => {
     const result = await sendChatMessage("hello");
     expect(spy).toHaveBeenCalledWith("/api/chat", expect.objectContaining({
       method: "POST",
-      body: JSON.stringify({ message: "hello" }),
+      body: JSON.stringify({ message: "hello", history: [] }),
     }));
     expect(result).toEqual({ reply: "hi" });
+  });
+
+  it("sendChatMessage replays prior user/assistant turns", async () => {
+    const spy = mockFetchOnce({ reply: "ok" });
+    await sendChatMessage("the first one", [
+      { role: "user", content: "How do I get to Limuru?" },
+      { role: "assistant", content: "Which Ngara stop?" },
+    ]);
+    expect(spy).toHaveBeenCalledWith("/api/chat", expect.objectContaining({
+      body: JSON.stringify({
+        message: "the first one",
+        history: [
+          { role: "user", content: "How do I get to Limuru?" },
+          { role: "assistant", content: "Which Ngara stop?" },
+        ],
+      }),
+    }));
+  });
+
+  it("sendChatMessage strips local-only error bubbles from history", async () => {
+    const spy = mockFetchOnce({ reply: "ok" });
+    await sendChatMessage("retry", [
+      { role: "error", content: "Something went wrong. Try again." },
+      { role: "user", content: "earlier question" },
+    ]);
+    expect(spy).toHaveBeenCalledWith("/api/chat", expect.objectContaining({
+      body: JSON.stringify({
+        message: "retry",
+        history: [{ role: "user", content: "earlier question" }],
+      }),
+    }));
   });
 
   it("throws ApiError with the status on a non-2xx response", async () => {

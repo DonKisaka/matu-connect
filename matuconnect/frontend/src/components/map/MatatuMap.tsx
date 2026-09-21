@@ -1,6 +1,6 @@
 "use client";
 
-import { MapContainer, TileLayer } from "react-leaflet";
+import { MapContainer, TileLayer, ZoomControl } from "react-leaflet";
 import type { ReactNode } from "react";
 import StopMarkers from "./StopMarkers";
 import "@/lib/leaflet-icons";
@@ -23,8 +23,19 @@ export default function MatatuMap({
   destinationStopId,
   onSelectStop,
 }: MatatuMapProps) {
+  // Leaflet's zoom control defaults to the top-left corner, where it sits
+  // underneath the route planner / coverage toggle overlay stack and clips it.
+  // Bottom-left is clear: the overlays own the top-left, and the mobile chat
+  // button owns the bottom-right.
   return (
-    <MapContainer center={NAIROBI} zoom={12} className="h-full w-full" scrollWheelZoom>
+    <MapContainer
+      center={NAIROBI}
+      zoom={12}
+      className="h-full w-full"
+      scrollWheelZoom
+      zoomControl={false}
+    >
+      <ZoomControl position="bottomleft" />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"

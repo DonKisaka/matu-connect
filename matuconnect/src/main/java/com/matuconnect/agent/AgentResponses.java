@@ -27,6 +27,32 @@ record RouteAdvisoryResponse(
 }
 
 /**
+ * A journey found between two places named in plain language, rather than
+ * between two specific stop_ids.
+ * <p>
+ * Nairobi's feed contains many distinct stops sharing one name — "Limuru
+ * Terminus" is two different stop_ids, and only one of them is reachable
+ * from Ngara. Naming which stops were actually used therefore matters:
+ * without it the model cannot tell the user that the journey it found
+ * starts from a particular one of several same-named stages.
+ * {@code candidatePairsEvaluated} is carried so the model can say how
+ * thoroughly it looked before reporting that nothing connects.
+ */
+record PlaceRouteResponse(
+        boolean routeFound,
+        String originStopName,
+        String originStopId,
+        String destinationStopName,
+        String destinationStopId,
+        List<String> stopNamesInOrder,
+        List<String> routeNamesUsed,
+        int estimatedRideMinutes,
+        int transferCount,
+        int candidatePairsEvaluated
+) {
+}
+
+/**
  * A capped, human-readable summary of network coverage gaps — never the
  * full raw lists from CoverageGapResult, which could be hundreds of
  * stops and would blow past what's useful in a chat response.

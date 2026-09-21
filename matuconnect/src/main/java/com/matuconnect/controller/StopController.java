@@ -1,6 +1,7 @@
 package com.matuconnect.controller;
 
 
+import com.matuconnect.graph.StopSearchService;
 import com.matuconnect.model.Stop;
 import com.matuconnect.repository.StopRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ import java.util.List;
 public class StopController {
 
     private final StopRepository stopRepository;
+    private final StopSearchService stopSearchService;
 
     @GetMapping
     public List<StopDto> allStops() {
@@ -32,9 +34,14 @@ public class StopController {
                 .toList();
     }
 
+    /**
+     * Only returns stops a trip actually serves — see
+     * {@link StopSearchService}. A search result here is expected to be
+     * usable as a routing endpoint, which an unserved stop never is.
+     */
     @GetMapping("/search")
     public List<StopDto> searchStops(@RequestParam String query) {
-        return stopRepository.findByStopNameContainingIgnoreCase(query).stream()
+        return stopSearchService.searchServedStops(query).stream()
                 .map(StopController::toDto)
                 .toList();
     }

@@ -18,9 +18,21 @@ interface Props {
   onChange: (stop: StopDto | null) => void;
 }
 
+/**
+ * "idle"      — nothing typed yet (or too short); show no list at all.
+ * "searching" — a request is in flight for the current text.
+ * "done"      — results below reflect the current text; empty means no match.
+ *
+ * Tracking this separately from `results` matters: an empty array alone
+ * cannot distinguish "haven't looked yet" from "looked and found nothing",
+ * which is why an untouched box used to read "No matches".
+ */
+type SearchStatus = "idle" | "searching" | "done";
+
 export default function StopCombobox({ label, testId, value, onChange }: Props) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<StopDto[]>([]);
+  const [status, setStatus] = useState<SearchStatus>("idle");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -32,11 +44,19 @@ export default function StopCombobox({ label, testId, value, onChange }: Props) 
       () => {
         if (trimmed.length < 2) {
           setResults([]);
+          setStatus("idle");
           return;
         }
+        setStatus("searching");
         searchStops(trimmed)
-          .then(setResults)
-          .catch(() => setResults([]));
+          .then((found) => {
+            setResults(found);
+            setStatus("done");
+          })
+          .catch(() => {
+            setResults([]);
+            setStatus("done");
+          });
       },
       trimmed.length < 2 ? 0 : 300,
     );
@@ -58,25 +78,29 @@ export default function StopCombobox({ label, testId, value, onChange }: Props) 
           }}
           placeholder={`Search ${label.toLowerCase()}…`}
         />
-        <CommandList>
-          {results.length === 0 ? (
-            <CommandEmpty>No matches</CommandEmpty>
-          ) : (
-            results.map((stop) => (
-              <CommandItem
-                key={stop.stopId}
-                value={stop.stopId}
-                onSelect={() => {
-                  onChange(stop);
-                  setQuery("");
-                  setResults([]);
-                }}
-              >
-                {stop.stopName}
-              </CommandItem>
-            ))
-          )}
-        </CommandList>
+        {status !== "idle" && (
+          <CommandList>
+            {status === "searching" && <CommandEmpty>Searching…</CommandEmpty>}
+            {status === "done" && results.length === 0 && (
+              <CommandEmpty>No matching stop is served by any route</CommandEmpty>
+            )}
+            {status === "done" &&
+              results.map((stop) => (
+                <CommandItem
+                  key={stop.stopId}
+                  value={stop.stopId}
+                  onSelect={() => {
+                    onChange(stop);
+                    setQuery("");
+                    setResults([]);
+                    setStatus("idle");
+                  }}
+                >
+                  {stop.stopName}
+                </CommandItem>
+              ))}
+          </CommandList>
+        )}
       </Command>
     </div>
   );

@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.jgrapht.Graph;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 
 /**
  * Builds the matatu network graph once, at application startup, and
@@ -26,7 +27,14 @@ public class MatatuGraphConfig {
 
     private final MatatuGraphBuilder matatuGraphBuilder;
 
+    /**
+     * Depends explicitly on {@code gtfsIngestionRunner} so the GTFS feed is
+     * guaranteed to be in the database before the graph is read out of it.
+     * Without this the graph would be built from empty tables on a fresh
+     * database, since ingestion used to happen after context refresh.
+     */
     @Bean
+    @DependsOn("gtfsIngestionRunner")
     public Graph<String, MatatuEdge> matatuGraph() {
         return matatuGraphBuilder.buildGraph();
     }
