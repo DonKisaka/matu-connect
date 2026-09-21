@@ -3,6 +3,7 @@ package com.matuconnect.controller;
 
 import com.matuconnect.graph.RouteResult;
 import com.matuconnect.graph.RoutingService;
+import com.matuconnect.report.JourneySearchLogService;
 import com.matuconnect.model.Route;
 import com.matuconnect.model.Stop;
 import com.matuconnect.repository.RouteRepository;
@@ -37,12 +38,19 @@ public class RouteController {
     private final RoutingService routingService;
     private final StopRepository stopRepository;
     private final RouteRepository routeRepository;
+    private final JourneySearchLogService journeySearchLogService;
 
     @GetMapping("/suggest")
     public RouteAdviceDto suggestRoute(@RequestParam String originStopId,
                                        @RequestParam String destinationStopId) {
 
         Optional<RouteResult> result = routingService.findShortestRoute(originStopId, destinationStopId);
+
+        // Recorded for the usage reports and journey history. Deliberately also
+        // recorded when nothing was found: a pair people keep asking for and the
+        // network cannot serve is demand-weighted evidence of a coverage gap.
+        // The call cannot throw — see JourneySearchLogService.
+        journeySearchLogService.record(originStopId, destinationStopId, result, null);
 
         if (result.isEmpty()) {
             return new RouteAdviceDto(false, List.of(), List.of(), 0, 0);
