@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ChevronDown, History, LayoutDashboard, LogIn, LogOut, UserRound } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "cn";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,10 +34,13 @@ export default function AccountMenu() {
 
   if (!user) {
     return (
-      <Button render={<Link href="/login" />} size="sm" variant="secondary" className="shadow-sm">
+      <Link
+        href="/login"
+        className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "shadow-sm")}
+      >
         <LogIn aria-hidden="true" className="mr-2 size-4" />
         Sign in
-      </Button>
+      </Link>
     );
   }
 
