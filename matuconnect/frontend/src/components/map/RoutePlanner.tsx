@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import StopCombobox from "./StopCombobox";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { suggestRoute } from "@/lib/api";
+import { suggestRouteByName } from "@/lib/api";
 import type { RouteAdviceDto, StopDto } from "@/lib/types";
 
 interface Props {
@@ -33,7 +33,11 @@ export default function RoutePlanner({ onSelectionChange, onRouteFound }: Props)
     setResult(null);
     onRouteFound?.(null);
     try {
-      const route = await suggestRoute(origin.stopId, destination.stopId);
+      // By name, not stop_id: several stops can share a name, and only some
+      // of them connect — this lets the backend find the best real journey
+      // between the places picked, rather than failing on the one specific
+      // stop_id the combobox happened to attach to the click. See api.ts.
+      const route = await suggestRouteByName(origin.stopName, destination.stopName);
       setResult(route);
       onRouteFound?.(route.routeFound ? route.stopsInOrder : null);
     } catch {

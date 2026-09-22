@@ -134,6 +134,23 @@ export function suggestRoute(originStopId: string, destinationStopId: string): P
   return request<RouteAdviceDto>(`/api/routes/suggest?${params.toString()}`);
 }
 
+/**
+ * Same as {@link suggestRoute}, but by place NAME rather than an exact
+ * stop_id. Several distinct stops can share one name (Nairobi has eleven
+ * stops named "Ngara"), and only some of those same-named stops actually
+ * connect to each other — searching by name lets the backend try every
+ * served candidate pair and return the best real journey, rather than
+ * failing just because the one specific stop_id picked from the search box
+ * happens to be an unconnected same-named stop.
+ */
+export function suggestRouteByName(
+  originName: string,
+  destinationName: string,
+): Promise<RouteAdviceDto> {
+  const params = new URLSearchParams({ originName, destinationName });
+  return request<RouteAdviceDto>(`/api/routes/suggest-by-name?${params.toString()}`);
+}
+
 export function getCoverage(): Promise<CoverageDto> {
   return request<CoverageDto>("/api/coverage");
 }

@@ -1,6 +1,7 @@
 package com.matuconnect.controller;
 
 
+import com.matuconnect.graph.PlaceRouteResolver;
 import com.matuconnect.graph.RouteResult;
 import com.matuconnect.graph.RoutingService;
 import com.matuconnect.report.JourneySearchLogService;
@@ -37,6 +38,7 @@ import java.util.Optional;
 public class RouteController {
 
     private final RoutingService routingService;
+    private final PlaceRouteResolver placeRouteResolver;
     private final StopRepository stopRepository;
     private final RouteRepository routeRepository;
     private final JourneySearchLogService journeySearchLogService;
@@ -74,6 +76,48 @@ public class RouteController {
                 .map(this::resolveRouteName)
                 .toList();
 
+        int estimatedMinutes = (int) Math.ceil(route.totalTravelTimeSeconds() / 60.0);
+
+        return new RouteAdviceDto(
+                true, stopNames, stopsInOrder, routeNames, estimatedMinutes, route.transferCount());
+    }
+
+    /**
+     * Same as {@link #suggestRoute}, but takes place NAMES rather than exact
+     * stop_ids.
+     * <p>
+     * The map's stop search box lets a commuter pick a specific stop_id from
+     * several that share one name (Nairobi has eleven stops named "Ngara"),
+     * and only some of those same-named stops are actually connected to each
+     * other — so a click that happens to land on an unconnected one used to
+     * report "no route found" even though the place itself is served. This
+     * evaluates every served candidate pair for the two names and returns
+     * the best actual journey, exactly like the chat agent's
+     * {@code suggestRouteBetweenPlaces} tool already did — this endpoint
+     * gives the direct map path the same guarantee.
+     */
+    @GetMapping("/suggest-by-name")
+    public RouteAdviceDto suggestRouteByName(@RequestParam String originName,
+                                             @RequestParam String destinationName,
+                                             Authentication authentication) {
+
+        Optional<PlaceRouteResolver.Resolution> resolution =
+                placeRouteResolver.resolveBestRoute(originName, destinationName);
+
+        if (resolution.isEmpty()) {
+            return new RouteAdviceDto(false, List.of(), List.of(), List.of(), 0, 0);
+        }
+
+        PlaceRouteResolver.Resolution best = resolution.get();
+        RouteResult route = best.route();
+
+        String username = authentication != null ? authentication.getName() : null;
+        journeySearchLogService.record(
+                best.origin().getStopId(), best.destination().getStopId(), Optional.of(route), username);
+
+        List<String> stopNames = route.stopIds().stream().map(this::resolveStopName).toList();
+        List<StopDto> stopsInOrder = route.stopIds().stream().map(this::resolveStop).toList();
+        List<String> routeNames = route.routeIdsUsed().stream().map(this::resolveRouteName).toList();
         int estimatedMinutes = (int) Math.ceil(route.totalTravelTimeSeconds() / 60.0);
 
         return new RouteAdviceDto(
