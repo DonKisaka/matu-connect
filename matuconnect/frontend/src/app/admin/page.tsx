@@ -203,7 +203,8 @@ export default function AdminPage() {
             </CardTitle>
             <p className="text-sm text-muted-foreground">
               A pair that is searched often but rarely served is a coverage gap people are actually
-              hitting.
+              hitting. IDs are shown under each pair because several Nairobi stops share a name —
+              the ID is what pins down exactly which one.
             </p>
           </CardHeader>
           <CardContent>

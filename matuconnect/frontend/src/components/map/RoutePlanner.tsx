@@ -79,6 +79,23 @@ export default function RoutePlanner({ onSelectionChange }: Props) {
                 <li key={`${name}-${i}`}>{name}</li>
               ))}
             </ol>
+            {/* Shown only once origin/destination markers actually change
+                colour on the map, rather than as a permanent map legend for
+                a state that is not always true. */}
+            <p className="flex items-center gap-1.5 pt-1 text-xs text-muted-foreground">
+              <span
+                aria-hidden="true"
+                className="inline-block size-2.5 rounded-full"
+                style={{ backgroundColor: "var(--color-marker-origin)" }}
+              />
+              Origin
+              <span
+                aria-hidden="true"
+                className="ml-2 inline-block size-2.5 rounded-full"
+                style={{ backgroundColor: "var(--color-marker-destination)" }}
+              />
+              Destination
+            </p>
           </div>
         )}
       </CardContent>

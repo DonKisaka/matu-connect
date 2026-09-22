@@ -128,9 +128,10 @@ export default function HistoryPage() {
                       </span>
                       {entry.destinationStopName}
                     </p>
-                    <p className="mt-0.5 font-mono text-xs text-muted-foreground">
-                      {entry.originStopId} → {entry.destinationStopId}
-                    </p>
+                    {/* Stop ids are omitted here on purpose: they matter for
+                        telling apart same-named stops in the aggregate admin
+                        report, but in a personal trip list they are noise —
+                        this reader already knows which stop they meant. */}
                     <p className="mt-1.5 text-xs text-muted-foreground">
                       {formatWhen(entry.searchedAt)}
                     </p>

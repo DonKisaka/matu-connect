@@ -22,6 +22,18 @@ export default function MapOverlays({
 }: Props) {
   return (
     <div className="pointer-events-none absolute left-3 top-3 z-[1000] flex max-h-[calc(100%-1.5rem)] flex-col gap-2 overflow-y-auto">
+      {/*
+        States the map's purpose before anyone has to ask what it is for:
+        see the network, plan a route, or ask the assistant — the same
+        three jobs the chat panel does conversationally.
+      */}
+      <div className="pointer-events-auto max-w-72 rounded-lg border bg-card/95 px-3 py-2 shadow-sm backdrop-blur-sm">
+        <p className="text-sm font-semibold text-foreground">MatuConnect</p>
+        <p className="text-xs text-muted-foreground">
+          Explore Nairobi&apos;s matatu network, plan a route, or ask the assistant.
+        </p>
+      </div>
+
       <div className="pointer-events-auto">
         <Button
           variant={showCoverage ? "default" : "secondary"}
