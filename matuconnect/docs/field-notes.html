@@ -1,0 +1,593 @@
+<!doctype html>
+<title>MatuConnect Field Notes</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Fira+Code:wght@400;500;600;700&display=swap"
+  rel="stylesheet"
+/>
+<style>
+  /* ============================================================
+     TOKENS — light is the bare :root; dark mirrors the product's
+     own dark-mode marker palette (origin green / isolated red /
+     poor amber) so "good/bad/watch" states in this doc read as
+     the same colours the app itself uses on the map.
+     ============================================================ */
+  :root {
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --surface-2: #eef2f7;
+    --ink: #1e293b;
+    --ink-soft: #52667e;
+    --heading: #1e3a8a;
+    --primary: #1e40af;
+    --primary-ink: #ffffff;
+    --accent: #d97706;
+    --accent-ink: #ffffff;
+    --border: #e1e8f2;
+    --code-bg: #eaf0fb;
+    --code-ink: #1e3a8a;
+    --good: #16a34a;
+    --bad: #dc2626;
+    --watch: #b45309;
+
+    --font-sans: "Fira Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "Fira Code", ui-monospace, "SFMono-Regular", Consolas, monospace;
+
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0d1526;
+      --surface: #16213a;
+      --surface-2: #101a30;
+      --ink: #e2e8f0;
+      --ink-soft: #93a4bd;
+      --heading: #93c5fd;
+      --primary: #60a5fa;
+      --primary-ink: #0d1526;
+      --accent: #fbbf24;
+      --accent-ink: #1f2937;
+      --border: #2a3a5c;
+      --code-bg: #101c34;
+      --code-ink: #93c5fd;
+      --good: #4ade80;
+      --bad: #f87171;
+      --watch: #fbbf24;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0d1526;
+    --surface: #16213a;
+    --surface-2: #101a30;
+    --ink: #e2e8f0;
+    --ink-soft: #93a4bd;
+    --heading: #93c5fd;
+    --primary: #60a5fa;
+    --primary-ink: #0d1526;
+    --accent: #fbbf24;
+    --accent-ink: #1f2937;
+    --border: #2a3a5c;
+    --code-bg: #101c34;
+    --code-ink: #93c5fd;
+    --good: #4ade80;
+    --bad: #f87171;
+    --watch: #fbbf24;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.6;
+    padding-inline: 20px;
+    padding-block: 36px 64px;
+  }
+
+  main {
+    max-width: 780px;
+    margin-inline: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 46px;
+  }
+
+  h1, h2, h3 { text-wrap: balance; color: var(--heading); font-weight: 700; margin: 0; }
+  p { margin: 0; }
+
+  /* ---------- Header band ---------- */
+  header.masthead {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 22px;
+    border-bottom: 3px solid var(--primary);
+  }
+  .wordmark {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .wordmark .brand {
+    font-size: clamp(1.7rem, 4vw, 2.3rem);
+    font-weight: 700;
+    color: var(--heading);
+  }
+  .wordmark .kicker {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: color-mix(in oklab, var(--accent) 14%, transparent);
+    border: 1px solid color-mix(in oklab, var(--accent) 40%, transparent);
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+  header.masthead p.dek {
+    color: var(--ink-soft);
+    font-size: 1rem;
+    max-width: 60ch;
+  }
+
+  /* ---------- Section shell ---------- */
+  section { display: flex; flex-direction: column; gap: 16px; }
+  section > .section-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- "Say this cold" — the memorize block ---------- */
+  .recite {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--primary);
+    border-radius: 10px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .recite .q { font-weight: 600; font-size: 0.95rem; color: var(--heading); }
+  .recite .a { color: var(--ink); font-size: 0.97rem; }
+  .recite .a b { color: var(--heading); }
+  .recite-list { display: flex; flex-direction: column; gap: 12px; }
+
+  /* ---------- Matatu-board stat chips ---------- */
+  .board-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .board {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: #16213a;
+    color: #fef3c7;
+    border: 2px solid #0d1526;
+    border-radius: 6px;
+    padding: 8px 12px;
+    box-shadow: 0 1px 0 color-mix(in oklab, var(--ink) 12%, transparent);
+  }
+  :root[data-theme="dark"] .board, @media (prefers-color-scheme: dark) { }
+  .board .num {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 1.15rem;
+    background: var(--accent);
+    color: var(--accent-ink);
+    padding: 1px 7px;
+    border-radius: 4px;
+    line-height: 1.4;
+  }
+  .board .label {
+    font-size: 0.78rem;
+    color: #cbd5e1;
+    line-height: 1.25;
+    max-width: 12ch;
+  }
+
+  /* ---------- Pipeline (numbered — order is real) ---------- */
+  .pipeline { display: flex; flex-direction: column; gap: 0; }
+  .step {
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    gap: 14px;
+    padding-block: 14px;
+    border-top: 1px solid var(--border);
+  }
+  .step:first-child { border-top: none; }
+  .step .n {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--primary-ink);
+    background: var(--primary);
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+  }
+  .step .body { display: flex; flex-direction: column; gap: 4px; }
+  .step .title { font-weight: 600; color: var(--heading); }
+  .step .desc { color: var(--ink-soft); font-size: 0.94rem; }
+  .step .file {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--code-ink);
+    background: var(--code-bg);
+    display: inline-block;
+    width: fit-content;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-top: 2px;
+  }
+
+  /* ---------- Two-role card row ---------- */
+  .roles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 480px) { .roles { grid-template-columns: 1fr; } }
+  .role-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .role-card .tag {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    width: fit-content;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .role-card.commuter .tag { background: color-mix(in oklab, var(--good) 18%, transparent); color: var(--good); }
+  .role-card.admin .tag { background: color-mix(in oklab, var(--primary) 16%, transparent); color: var(--primary); }
+  .role-card p { font-size: 0.92rem; color: var(--ink-soft); }
+
+  /* ---------- Evidence / story box ---------- */
+  .story {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .story .lead { font-weight: 600; color: var(--heading); }
+  .compare { display: flex; flex-direction: column; gap: 6px; font-family: var(--font-mono); font-size: 0.85rem; }
+  .compare .row { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .compare .rate { font-weight: 700; padding: 0 5px; border-radius: 3px; }
+  .compare .rate.good { color: var(--good); }
+  .compare .rate.bad { color: var(--bad); }
+  .story .moral { font-size: 0.92rem; color: var(--ink-soft); padding-top: 2px; }
+
+  /* ---------- Gaps list ---------- */
+  .gaps { display: flex; flex-direction: column; gap: 10px; }
+  .gap-item {
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    gap: 10px;
+    align-items: start;
+  }
+  .gap-item .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--watch); margin-top: 6px;
+  }
+  .gap-item .claim { font-weight: 600; font-size: 0.93rem; }
+  .gap-item .reality { color: var(--ink-soft); font-size: 0.9rem; }
+
+  /* ---------- FAQ ---------- */
+  .faq { display: flex; flex-direction: column; gap: 18px; }
+  .faq-item { display: flex; flex-direction: column; gap: 5px; }
+  .faq-item .q { font-weight: 600; color: var(--heading); font-size: 0.98rem; }
+  .faq-item .a { color: var(--ink); font-size: 0.95rem; }
+  .faq-item .a code { font-family: var(--font-mono); background: var(--code-bg); color: var(--code-ink); padding: 1px 5px; border-radius: 4px; font-size: 0.87em; }
+
+  /* ---------- Stack grid ---------- */
+  .stack-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 20px; }
+  @media (max-width: 480px) { .stack-grid { grid-template-columns: 1fr; } }
+  .stack-cat .cat-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+    display: block;
+  }
+  .stack-cat ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 3px; }
+  .stack-cat li { font-size: 0.9rem; color: var(--ink-soft); }
+  .stack-cat li b { color: var(--ink); font-weight: 600; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding-top: 18px;
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+  }
+
+  ::selection { background: color-mix(in oklab, var(--accent) 35%, transparent); }
+  a { color: var(--primary); }
+  :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+</style>
+
+<main>
+
+  <header class="masthead">
+    <div class="wordmark">
+      <span class="brand">MatuConnect</span>
+      <span class="kicker">Field Notes</span>
+    </div>
+    <p class="dek">
+      Not a spec, not a slide deck — the answers you need to have ready in your own words
+      before Friday's review. Read the boxed lines out loud until they're automatic.
+    </p>
+  </header>
+
+  <section>
+    <span class="section-label">Say this cold</span>
+    <div class="recite-list">
+      <div class="recite">
+        <p class="q">What is this system?</p>
+        <p class="a">
+          <b>An AI-powered route advisory system for Nairobi's matatu network.</b> It combines a
+          graph model of the real GTFS transit data with a conversational agent, so a commuter
+          can either browse a map or just ask a question in plain language.
+        </p>
+      </div>
+      <div class="recite">
+        <p class="q">What's the map for, versus the chat?</p>
+        <p class="a">
+          <b>The map is how you <i>see</i> the network — the chat is how you <i>ask</i> about it.</b>
+          Same data, same graph analysis underneath, two ways in. The map plots all 4,284 stops,
+          shows a suggested route as text when you pick two stops, and can highlight coverage
+          gaps in colour. The chat does the same three jobs conversationally, for someone who'd
+          rather type a question than click two dropdowns.
+        </p>
+      </div>
+      <div class="recite">
+        <p class="q">Who are the primary users?</p>
+        <p class="a">
+          <b>Two roles, not three.</b> A <b>Commuter</b> — signed in or anonymous — uses the map,
+          planner, and chat freely. An <b>Administrator</b> additionally sees usage reports and
+          the most-searched-routes table. No separate "planner/researcher" role, because it would
+          read the exact same reports an admin already can — no distinct permission to justify it.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <span class="section-label">Numbers you must not get wrong</span>
+    <div class="board-row">
+      <div class="board"><span class="num">4,284</span><span class="label">stops ingested</span></div>
+      <div class="board"><span class="num">136</span><span class="label">routes</span></div>
+      <div class="board"><span class="num">272</span><span class="label">trips</span></div>
+      <div class="board"><span class="num">7,260</span><span class="label">graph edges</span></div>
+      <div class="board"><span class="num">3,281</span><span class="label">main network</span></div>
+      <div class="board"><span class="num">973</span><span class="label">isolated clusters</span></div>
+      <div class="board"><span class="num">21 / 21</span><span class="label">backend / frontend tests</span></div>
+    </div>
+  </section>
+
+  <section>
+    <span class="section-label">How a request actually flows</span>
+    <div class="pipeline">
+      <div class="step">
+        <span class="n">1</span>
+        <div class="body">
+          <span class="title">Ingest the GTFS feed</span>
+          <span class="desc">Digital Matatus dataset (stops, routes, trips, stop_times, shapes) parsed and loaded into PostgreSQL on startup.</span>
+          <span class="file">GtfsIngestionService</span>
+        </div>
+      </div>
+      <div class="step">
+        <span class="n">2</span>
+        <div class="body">
+          <span class="title">Build the graph, in memory</span>
+          <span class="desc">A directed weighted multigraph — one node per stop, one edge per consecutive stop-to-stop hop on a trip — built once at startup with JGraphT.</span>
+          <span class="file">MatatuGraphBuilder</span>
+        </div>
+      </div>
+      <div class="step">
+        <span class="n">3</span>
+        <div class="body">
+          <span class="title">Analyse it</span>
+          <span class="desc">A custom Dijkstra whose search state is (stop, route you arrived on) — so a transfer penalty applies exactly when the route changes — plus Kosaraju's algorithm for strongly-connected-component coverage gaps.</span>
+          <span class="file">RoutingService · CoverageAnalysisService</span>
+        </div>
+      </div>
+      <div class="step">
+        <span class="n">4</span>
+        <div class="body">
+          <span class="title">Expose it two ways</span>
+          <span class="desc">Direct REST endpoints for the map (deterministic, fast, no LLM involved) — and the same routing/coverage logic wrapped as tools a Spring AI agent can call when someone asks in natural language.</span>
+          <span class="file">RouteController · CoverageController · RouteAdvisoryTools</span>
+        </div>
+      </div>
+      <div class="step">
+        <span class="n">5</span>
+        <div class="body">
+          <span class="title">Ground the agent beyond the graph</span>
+          <span class="desc">A RAG pipeline — Ollama embeds a small local knowledge base into pgvector — lets the agent answer about things the 2019 GTFS data can't know, like the December 2024 CBD route gazette.</span>
+          <span class="file">KnowledgeBaseIngestionService</span>
+        </div>
+      </div>
+      <div class="step">
+        <span class="n">6</span>
+        <div class="body">
+          <span class="title">Render it</span>
+          <span class="desc">Next.js talks to the backend through a same-origin rewrite proxy — no CORS config needed anywhere — with Leaflet for the map and a chat panel for the agent.</span>
+          <span class="file">next.config.ts rewrites</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <span class="section-label">Roles &amp; access</span>
+    <div class="roles">
+      <div class="role-card commuter">
+        <span class="tag">COMMUTER</span>
+        <p>Default role on sign-up. Full access to map, planner, chat — and, once signed in, a
+          personal journey history. No account is required for any of this.</p>
+      </div>
+      <div class="role-card admin">
+        <span class="tag">ADMIN</span>
+        <p>Everything a commuter has, plus <code style="font-family:var(--font-mono);background:var(--code-bg);color:var(--code-ink);padding:1px 5px;border-radius:4px;">/api/reports</code> — usage
+          stats and the most-searched-routes table. Seeded at startup; sign-up can never grant it.</p>
+      </div>
+    </div>
+    <p style="color:var(--ink-soft); font-size:0.9rem;">
+      Session cookie, not a JWT — the browser only ever talks to the app itself through the proxy,
+      so there's no third-party client to justify token issuing/refresh. CSRF stays on regardless,
+      via a double-submit cookie.
+    </p>
+  </section>
+
+  <section>
+    <span class="section-label">Your best "I actually debugged this" story</span>
+    <div class="story">
+      <p class="lead">Same stop name, two different stops, opposite results.</p>
+      <p style="font-size:0.92rem; color:var(--ink-soft);">
+        Nairobi's feed has several stops sharing one name. The agent once resolved "Limuru
+        Terminus" to the wrong one and told a user no route existed — when one plainly did.
+      </p>
+      <div class="compare">
+        <div class="row">Ngara → Limuru Terminus &nbsp;<span style="color:var(--ink-soft)">[0110IRT → 0113LMD]</span>&nbsp; <span class="rate good">100%</span></div>
+        <div class="row">Ngara → Limuru Terminus &nbsp;<span style="color:var(--ink-soft)">[0110IRT → 0110ILU]</span>&nbsp; <span class="rate bad">0%</span></div>
+      </div>
+      <p class="moral">
+        Fix: route resolution now evaluates every served candidate pair for a name, not one
+        guess — and the most-searched-routes report groups by stop <b>ID</b>, not name, so this
+        exact ambiguity shows up as data instead of staying hidden.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <span class="section-label">If asked what's missing — say this, not nothing</span>
+    <div class="gaps">
+      <div class="gap-item">
+        <span class="dot"></span>
+        <div><p class="claim">Swahili interface</p><p class="reality">Promised in the proposal, not yet implemented — it's a system-prompt change, scheduled before submission.</p></div>
+      </div>
+      <div class="gap-item">
+        <span class="dot"></span>
+        <div><p class="claim">Walking-distance coverage</p><p class="reality">Implemented graph-theoretic coverage (Kosaraju SCC + degree) instead. Geographic analysis is future work — PostGIS is installed and ready for it.</p></div>
+      </div>
+      <div class="gap-item">
+        <span class="dot"></span>
+        <div><p class="claim">Route line drawn on the map</p><p class="reality"><code>/api/routes/suggest</code> returns stop names only, no coordinates. A route shows as text plus highlighted origin/destination markers — drawing the line needs a new endpoint over the GTFS shapes data.</p></div>
+      </div>
+      <div class="gap-item">
+        <span class="dot"></span>
+        <div><p class="claim">Admin route editing</p><p class="reality">Roles and reporting are built and tested; editing route data is the next increment.</p></div>
+      </div>
+      <div class="gap-item">
+        <span class="dot"></span>
+        <div><p class="claim">Transfer penalty tuning</p><p class="reality">Was 5 minutes — too cheap, so routing over-transferred. Raised to 15 minutes to match what a real commuter actually trades off.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <span class="section-label">Likely questions, ready answers</span>
+    <div class="faq">
+      <div class="faq-item">
+        <p class="q">Why Claude and not a local model for the chat?</p>
+        <p class="a">Tool-calling reliability. The routing and coverage logic is deterministic and runs locally either way — only the language layer is remote, and it has to reliably call <code>suggestRouteBetweenPlaces</code> and <code>getCoverageGapSummary</code> rather than hallucinate an answer.</p>
+      </div>
+      <div class="faq-item">
+        <p class="q">Why a multigraph, and why directed?</p>
+        <p class="a">Directed because a matatu doesn't always return by the same road. Multigraph because two different routes can connect the same pair of stops, and collapsing that into one edge would hide a commuter's actual choice.</p>
+      </div>
+      <div class="faq-item">
+        <p class="q">Why Kosaraju's algorithm specifically?</p>
+        <p class="a">It finds strongly-connected components on a <i>directed</i> graph. A stop can have service arriving with none leaving (or vice-versa) — weak connectivity would hide that asymmetric-service problem entirely.</p>
+      </div>
+      <div class="faq-item">
+        <p class="q">No CORS config anywhere — why not?</p>
+        <p class="a">The browser only ever calls relative <code>/api/*</code> paths. Next.js rewrites proxy those to Spring Boot server-side, so from the browser's point of view every request is same-origin.</p>
+      </div>
+      <div class="faq-item">
+        <p class="q">What would you build next, given more time?</p>
+        <p class="a">In order: Swahili in the system prompt, the route-geometry endpoint so the map can draw an actual line, then admin route editing.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <span class="section-label">Tech stack, quick reference</span>
+    <div class="stack-grid">
+      <div class="stack-cat">
+        <span class="cat-label">Backend</span>
+        <ul>
+          <li><b>Java 25</b> · Spring Boot 4.1</li>
+          <li>Spring AI 2.0 — agent, RAG, tool calling</li>
+          <li>JGraphT — graph model, SCC</li>
+          <li>Spring Security 7.1 — sessions, CSRF</li>
+          <li>Spring Data JPA / Hibernate 7</li>
+        </ul>
+      </div>
+      <div class="stack-cat">
+        <span class="cat-label">Data &amp; AI</span>
+        <ul>
+          <li><b>PostgreSQL 17</b> + pgvector + PostGIS</li>
+          <li>Anthropic Claude (haiku-4-5) — the agent</li>
+          <li>Ollama + nomic-embed-text — local embeddings</li>
+          <li>Digital Matatus GTFS feed</li>
+        </ul>
+      </div>
+      <div class="stack-cat">
+        <span class="cat-label">Frontend</span>
+        <ul>
+          <li><b>Next.js 16</b> (App Router) · React 19</li>
+          <li>TypeScript · Tailwind CSS v4</li>
+          <li>shadcn/ui (Base UI)</li>
+          <li>Leaflet + marker clustering</li>
+        </ul>
+      </div>
+      <div class="stack-cat">
+        <span class="cat-label">Testing</span>
+        <ul>
+          <li>JUnit 5 + Mockito + MockMvc</li>
+          <li>Vitest + React Testing Library</li>
+          <li>21 backend tests, 21 frontend tests</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    MatuConnect — Daystar University, ACS 470. Written for one reader, before one review:
+    know these cold, and the rest of the conversation follows naturally from them.
+  </footer>
+
+</main>

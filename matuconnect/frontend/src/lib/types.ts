@@ -8,6 +8,7 @@ export interface StopDto {
 export interface RouteAdviceDto {
   routeFound: boolean;
   stopNamesInOrder: string[];
+  stopsInOrder: StopDto[];
   routeNamesUsed: string[];
   estimatedRideMinutes: number;
   transferCount: number;

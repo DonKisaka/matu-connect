@@ -13,7 +13,8 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "cn";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -81,9 +82,12 @@ export default function AdminPage() {
                   : "Sign in with an administrator account to view usage reports."}
               </p>
             </div>
-            <Button render={<Link href={user ? "/" : "/login"} />} variant="secondary">
+            <Link
+              href={user ? "/" : "/login"}
+              className={cn(buttonVariants({ variant: "secondary" }))}
+            >
               {user ? "Back to the map" : "Sign in"}
-            </Button>
+            </Link>
           </CardContent>
         </Card>
       </PageShell>
@@ -199,7 +203,8 @@ export default function AdminPage() {
             </CardTitle>
             <p className="text-sm text-muted-foreground">
               A pair that is searched often but rarely served is a coverage gap people are actually
-              hitting.
+              hitting. IDs are shown under each pair because several Nairobi stops share a name —
+              the ID is what pins down exactly which one.
             </p>
           </CardHeader>
           <CardContent>
@@ -272,9 +277,12 @@ function EmptyRoutes() {
       <p className="max-w-sm text-sm text-muted-foreground">
         This fills in as people plan routes. Try the planner on the map, then come back.
       </p>
-      <Button render={<Link href="/" />} variant="secondary" size="sm" className="mt-1">
+      <Link
+        href="/"
+        className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "mt-1")}
+      >
         Open the map
-      </Button>
+      </Link>
     </div>
   );
 }

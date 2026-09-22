@@ -71,7 +71,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
-    await api.logout();
+    // Clear local state whatever the server says. A failed or rejected logout
+    // call previously left the menu looking signed in with nothing happening,
+    // which is worse than optimistically signing out: the session cookie is
+    // the server's to invalidate, and if that call failed the user can still
+    // see they are out and retry.
+    try {
+      await api.logout();
+    } catch {
+      // Swallowed deliberately — see above.
+    }
     setUser(null);
   }, []);
 

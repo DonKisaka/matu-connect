@@ -1,6 +1,7 @@
 package com.matuconnect.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
@@ -26,13 +27,24 @@ import java.util.List;
  * agent resolve back-references such as "the first one". Only the most
  * recent {@link #MAX_HISTORY_TURNS} turns are replayed, so a long-running
  * conversation cannot grow the prompt without bound.
+ *
+ * <p>The call to Claude retries once on failure. This environment has hit
+ * intermittent TLS handshake failures reaching Anthropic's API — most likely
+ * antivirus HTTPS inspection substituting a certificate the JVM's trust
+ * store does not recognise — where one attempt fails and the very next
+ * attempt, moments later, succeeds outright. That is the signature of a
+ * transient per-connection fault, not a real outage, so a single retry on
+ * a fresh connection is the correct response rather than surfacing it to
+ * the user as a broken chat.
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/chat")
 @RequiredArgsConstructor
 public class ChatController {
 
     private static final int MAX_HISTORY_TURNS = 10;
+    private static final int MAX_ATTEMPTS = 2;
 
     private final ChatClient chatClient;
 
@@ -40,12 +52,20 @@ public class ChatController {
     public ChatResponse chat(@RequestBody ChatRequest request) {
         List<Message> conversation = toMessages(request);
 
-        String reply = chatClient.prompt()
-                .messages(conversation)
-                .call()
-                .content();
-
-        return new ChatResponse(reply);
+        RuntimeException lastFailure = null;
+        for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            try {
+                String reply = chatClient.prompt()
+                        .messages(conversation)
+                        .call()
+                        .content();
+                return new ChatResponse(reply);
+            } catch (RuntimeException e) {
+                lastFailure = e;
+                log.warn("Chat call attempt {}/{} failed: {}", attempt, MAX_ATTEMPTS, e.toString());
+            }
+        }
+        throw lastFailure;
     }
 
     /**

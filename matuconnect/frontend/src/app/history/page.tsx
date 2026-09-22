@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, CircleAlert, Clock, History, RefreshCw, Repeat } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "cn";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
@@ -55,7 +56,7 @@ export default function HistoryPage() {
                 Journeys you look up while signed in are saved here.
               </p>
             </div>
-            <Button render={<Link href="/login" />}>Sign in</Button>
+            <Link href="/login" className={cn(buttonVariants())}>Sign in</Link>
           </CardContent>
         </Card>
       </PageShell>
@@ -105,9 +106,12 @@ export default function HistoryPage() {
             <p className="max-w-sm text-sm text-muted-foreground">
               Plan a route on the map and it will appear here.
             </p>
-            <Button render={<Link href="/" />} variant="secondary" size="sm" className="mt-1">
+            <Link
+              href="/"
+              className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "mt-1")}
+            >
               Open the map
-            </Button>
+            </Link>
           </CardContent>
         </Card>
       ) : (
@@ -124,9 +128,10 @@ export default function HistoryPage() {
                       </span>
                       {entry.destinationStopName}
                     </p>
-                    <p className="mt-0.5 font-mono text-xs text-muted-foreground">
-                      {entry.originStopId} → {entry.destinationStopId}
-                    </p>
+                    {/* Stop ids are omitted here on purpose: they matter for
+                        telling apart same-named stops in the aggregate admin
+                        report, but in a personal trip list they are noise —
+                        this reader already knows which stop they meant. */}
                     <p className="mt-1.5 text-xs text-muted-foreground">
                       {formatWhen(entry.searchedAt)}
                     </p>

@@ -3,12 +3,13 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ChevronDown, History, LayoutDashboard, LogIn, LogOut, UserRound } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "cn";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
+
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -33,10 +34,13 @@ export default function AccountMenu() {
 
   if (!user) {
     return (
-      <Button render={<Link href="/login" />} size="sm" variant="secondary" className="shadow-sm">
+      <Link
+        href="/login"
+        className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "shadow-sm")}
+      >
         <LogIn aria-hidden="true" className="mr-2 size-4" />
         Sign in
-      </Button>
+      </Link>
     );
   }
 
@@ -52,21 +56,33 @@ export default function AccountMenu() {
         }
       />
       <DropdownMenuContent align="end" className="w-52">
-        <DropdownMenuLabel>
+        {/* A plain element rather than DropdownMenuLabel: that wraps Base UI's
+            Menu.GroupLabel, which throws unless it sits inside a Menu.Group.
+            This is a heading for the whole menu, not a label for a group. */}
+        <div className="px-2 py-1.5 text-sm font-medium">
           <span className="block truncate">{user.username}</span>
           <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
             {isAdmin ? "Administrator" : "Commuter"}
           </span>
-        </DropdownMenuLabel>
+        </div>
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem render={<Link href="/history" />}>
+        {/*
+          Explicit router.push rather than render={<Link/>}: Base UI's Menu.Item
+          owns click/keyboard activation to keep mouse, Enter, and Space
+          consistent, and in doing so can consume the click before a rendered
+          <a>'s own navigation fires — so clicking these appeared to do
+          nothing but close the menu. The Sign out item below already proves
+          onClick + router.push works inside a menu item; these two now use
+          the same proven pattern instead of the uncertain one.
+        */}
+        <DropdownMenuItem onClick={() => router.push("/history")}>
           <History aria-hidden="true" className="mr-2 size-4" />
           My journeys
         </DropdownMenuItem>
 
         {isAdmin && (
-          <DropdownMenuItem render={<Link href="/admin" />}>
+          <DropdownMenuItem onClick={() => router.push("/admin")}>
             <LayoutDashboard aria-hidden="true" className="mr-2 size-4" />
             Admin dashboard
           </DropdownMenuItem>

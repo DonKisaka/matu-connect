@@ -36,8 +36,17 @@ public class RoutingService {
      * preference), and is intentionally excluded from the travel time
      * reported back in {@link RouteResult}, which reflects only actual
      * riding time.
+     * <p>
+     * Originally 300s (5 min), which was too cheap: the search happily
+     * chained three or four short hops to shave a couple of minutes off
+     * total ride time, producing routes with more transfers than a real
+     * commuter would actually take. 900s (15 min) reflects that a
+     * transfer costs more than the wait alone — walking to the right
+     * stage and the uncertainty of catching the next matatu both count
+     * against it — and biases the search toward the route a commuter
+     * would actually prefer.
      */
-    private static final int TRANSFER_PENALTY_SECONDS = 300;
+    private static final int TRANSFER_PENALTY_SECONDS = 900;
 
     private final Graph<String, MatatuEdge> matatuGraph;
 

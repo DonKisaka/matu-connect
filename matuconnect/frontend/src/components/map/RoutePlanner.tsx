@@ -9,9 +9,13 @@ import type { RouteAdviceDto, StopDto } from "@/lib/types";
 
 interface Props {
   onSelectionChange: (origin: StopDto | null, destination: StopDto | null) => void;
+  /** Called with the ordered stops once a route is found, or null when
+   * there is none to draw — a fresh search, a miss, or an error all clear
+   * whatever line is currently on the map rather than leaving a stale one. */
+  onRouteFound?: (stops: StopDto[] | null) => void;
 }
 
-export default function RoutePlanner({ onSelectionChange }: Props) {
+export default function RoutePlanner({ onSelectionChange, onRouteFound }: Props) {
   const [origin, setOrigin] = useState<StopDto | null>(null);
   const [destination, setDestination] = useState<StopDto | null>(null);
   const [result, setResult] = useState<RouteAdviceDto | null>(null);
@@ -27,8 +31,11 @@ export default function RoutePlanner({ onSelectionChange }: Props) {
     setLoading(true);
     setError(false);
     setResult(null);
+    onRouteFound?.(null);
     try {
-      setResult(await suggestRoute(origin.stopId, destination.stopId));
+      const route = await suggestRoute(origin.stopId, destination.stopId);
+      setResult(route);
+      onRouteFound?.(route.routeFound ? route.stopsInOrder : null);
     } catch {
       setError(true);
     } finally {
@@ -79,6 +86,23 @@ export default function RoutePlanner({ onSelectionChange }: Props) {
                 <li key={`${name}-${i}`}>{name}</li>
               ))}
             </ol>
+            {/* Shown only once origin/destination markers actually change
+                colour on the map, rather than as a permanent map legend for
+                a state that is not always true. */}
+            <p className="flex items-center gap-1.5 pt-1 text-xs text-muted-foreground">
+              <span
+                aria-hidden="true"
+                className="inline-block size-2.5 rounded-full"
+                style={{ backgroundColor: "var(--color-marker-origin)" }}
+              />
+              Origin
+              <span
+                aria-hidden="true"
+                className="ml-2 inline-block size-2.5 rounded-full"
+                style={{ backgroundColor: "var(--color-marker-destination)" }}
+              />
+              Destination
+            </p>
           </div>
         )}
       </CardContent>

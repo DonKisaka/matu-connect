@@ -57,7 +57,7 @@ public class RouteController {
         journeySearchLogService.record(originStopId, destinationStopId, result, username);
 
         if (result.isEmpty()) {
-            return new RouteAdviceDto(false, List.of(), List.of(), 0, 0);
+            return new RouteAdviceDto(false, List.of(), List.of(), List.of(), 0, 0);
         }
 
         RouteResult route = result.get();
@@ -66,17 +66,28 @@ public class RouteController {
                 .map(this::resolveStopName)
                 .toList();
 
+        List<StopDto> stopsInOrder = route.stopIds().stream()
+                .map(this::resolveStop)
+                .toList();
+
         List<String> routeNames = route.routeIdsUsed().stream()
                 .map(this::resolveRouteName)
                 .toList();
 
         int estimatedMinutes = (int) Math.ceil(route.totalTravelTimeSeconds() / 60.0);
 
-        return new RouteAdviceDto(true, stopNames, routeNames, estimatedMinutes, route.transferCount());
+        return new RouteAdviceDto(
+                true, stopNames, stopsInOrder, routeNames, estimatedMinutes, route.transferCount());
     }
 
     private String resolveStopName(String stopId) {
         return stopRepository.findById(stopId).map(Stop::getStopName).orElse(stopId);
+    }
+
+    private StopDto resolveStop(String stopId) {
+        return stopRepository.findById(stopId)
+                .map(stop -> new StopDto(stop.getStopId(), stop.getStopName(), stop.getStopLat(), stop.getStopLon()))
+                .orElse(new StopDto(stopId, stopId, 0.0, 0.0));
     }
 
     private String resolveRouteName(String routeId) {
