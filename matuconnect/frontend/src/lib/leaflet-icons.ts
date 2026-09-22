@@ -18,7 +18,7 @@ export const defaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = defaultIcon;
 
-function cssVar(name: string): string {
+export function cssVar(name: string): string {
   if (typeof window === "undefined") return "#2563eb";
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "#2563eb";
 }

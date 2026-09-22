@@ -20,6 +20,7 @@ export default function Home() {
   const [showCoverage, setShowCoverage] = useState(false);
   const [originId, setOriginId] = useState<string | null>(null);
   const [destId, setDestId] = useState<string | null>(null);
+  const [routeStops, setRouteStops] = useState<StopDto[] | null>(null);
 
   const onSelectionChange = useCallback(
     (origin: StopDto | null, destination: StopDto | null) => {
@@ -65,11 +66,13 @@ export default function Home() {
           coverageError={coverage.status === "error"}
           onToggleCoverage={onToggleCoverage}
           onSelectionChange={onSelectionChange}
+          onRouteFound={setRouteStops}
         />
         <MapView
           stops={stops}
           originStopId={originId}
           destinationStopId={destId}
+          routeStops={routeStops}
           coverageSlot={
             showCoverage && coverage.data ? (
               <CoverageLayer data={coverage.data} />

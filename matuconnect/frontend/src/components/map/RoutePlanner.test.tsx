@@ -22,7 +22,7 @@ describe("RoutePlanner", () => {
 
   it("renders a not-found message when routeFound is false", async () => {
     vi.spyOn(api, "suggestRoute").mockResolvedValue({
-      routeFound: false, stopNamesInOrder: [], routeNamesUsed: [], estimatedRideMinutes: 0, transferCount: 0,
+      routeFound: false, stopNamesInOrder: [], stopsInOrder: [], routeNamesUsed: [], estimatedRideMinutes: 0, transferCount: 0,
     });
     render(<RoutePlanner onSelectionChange={() => {}} />);
     // Test-only helper hooks: the component exposes data-testid inputs for typing.
@@ -38,6 +38,11 @@ describe("RoutePlanner", () => {
     vi.spyOn(api, "suggestRoute").mockResolvedValue({
       routeFound: true,
       stopNamesInOrder: ["Kencom", "Museum Hill", "Westlands"],
+      stopsInOrder: [
+        { stopId: "K", stopName: "Kencom", latitude: -1.28, longitude: 36.82 },
+        { stopId: "M", stopName: "Museum Hill", latitude: -1.27, longitude: 36.81 },
+        { stopId: "W", stopName: "Westlands", latitude: -1.26, longitude: 36.8 },
+      ],
       routeNamesUsed: ["46"],
       estimatedRideMinutes: 24,
       transferCount: 0,

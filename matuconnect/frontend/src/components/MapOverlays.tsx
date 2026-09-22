@@ -11,6 +11,7 @@ interface Props {
   coverageError: boolean;
   onToggleCoverage: () => void;
   onSelectionChange: (origin: StopDto | null, destination: StopDto | null) => void;
+  onRouteFound?: (stops: StopDto[] | null) => void;
 }
 
 export default function MapOverlays({
@@ -19,6 +20,7 @@ export default function MapOverlays({
   coverageError,
   onToggleCoverage,
   onSelectionChange,
+  onRouteFound,
 }: Props) {
   return (
     <div className="pointer-events-none absolute left-3 top-3 z-[1000] flex max-h-[calc(100%-1.5rem)] flex-col gap-2 overflow-y-auto">
@@ -43,7 +45,7 @@ export default function MapOverlays({
         </Button>
       </div>
       <div className="pointer-events-auto">
-        <RoutePlanner onSelectionChange={onSelectionChange} />
+        <RoutePlanner onSelectionChange={onSelectionChange} onRouteFound={onRouteFound} />
       </div>
       {showCoverage && coverageError && (
         <div className="pointer-events-auto rounded bg-red-600 px-3 py-1 text-sm text-white">

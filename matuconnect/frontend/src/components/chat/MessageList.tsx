@@ -105,7 +105,12 @@ export default function MessageList({
   onPickStarter?: (text: string) => void;
 }) {
   return (
-    <ScrollArea className="flex-1 p-3">
+    // min-h-0 is load-bearing: a flex child defaults to min-height:auto, so
+    // flex-1 alone lets this grow to fit every message instead of being
+    // clamped to the space ChatPanel actually gave it — with no bounded
+    // height, Base UI's Viewport has nothing to scroll within, so the
+    // overflow just got cut off with no way to reach it.
+    <ScrollArea className="min-h-0 flex-1 p-3">
       <div className="flex flex-col gap-2">
         {messages.length === 0 && !pending && <EmptyState onPick={onPickStarter} />}
         {messages.map((m, i) => (
