@@ -57,6 +57,12 @@ export default function LoginPage() {
         failWith("That username is already taken. Try another, or sign in.");
       } else if (e instanceof ApiError && e.status === 401) {
         failWith("Invalid username or password.");
+      } else if (e instanceof ApiError && e.status === 403) {
+        // The client already retries once with a fresh CSRF token, so a 403
+        // reaching here means the retry failed too — a stale session rather
+        // than a bad password, and reporting it as the latter sends the user
+        // hunting for a typo that isn't there.
+        failWith("Your session expired. Refresh the page and try again.");
       } else {
         failWith("Could not reach the server. Check it is running and try again.");
       }

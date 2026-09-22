@@ -33,8 +33,21 @@ function csrfToken(): string | null {
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS", "TRACE"]);
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const method = (init?.method ?? "GET").toUpperCase();
+/**
+ * Asks the server for a fresh CSRF cookie.
+ * <p>
+ * Any safe request will do — the backend writes the token on every response —
+ * so this is deliberately the cheapest endpoint available.
+ */
+async function refreshCsrfToken(): Promise<void> {
+  try {
+    await fetch("/api/auth/me", { method: "GET", credentials: "same-origin" });
+  } catch {
+    // Offline or backend down; the caller's own error is the useful one.
+  }
+}
+
+async function send(path: string, method: string, init?: RequestInit): Promise<Response> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...((init?.headers as Record<string, string>) ?? {}),
@@ -45,13 +58,32 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     if (token) headers["X-XSRF-TOKEN"] = token;
   }
 
-  const res = await fetch(path, {
+  return fetch(path, {
     ...init,
     headers,
     // Session and CSRF cookies must ride along. Same-origin is the default,
     // but stating it keeps the intent obvious.
     credentials: "same-origin",
   });
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const method = (init?.method ?? "GET").toUpperCase();
+
+  let res = await send(path, method, init);
+
+  // A browser left open across a backend restart still holds the previous
+  // run's CSRF cookie, which the new server rejects — and a rejected token
+  // arrives as 401/403, indistinguishable from bad credentials. Fetch a fresh
+  // token and retry once, so a stale cookie cannot masquerade as a wrong
+  // password. Only unsafe methods carry a token, so only they can hit this.
+  if (!res.ok && !SAFE_METHODS.has(method) && (res.status === 401 || res.status === 403)) {
+    await refreshCsrfToken();
+    if (csrfToken()) {
+      res = await send(path, method, init);
+    }
+  }
+
   if (!res.ok) {
     throw new ApiError(res.status, `Request to ${path} failed with ${res.status}`);
   }
