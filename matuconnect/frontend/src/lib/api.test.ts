@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ApiError, getStops, searchStops, suggestRoute, getCoverage, sendChatMessage } from "@/lib/api";
+import { ApiError, getStops, searchStops, suggestRoute, suggestRouteByName, getCoverage, sendChatMessage } from "@/lib/api";
 
 function mockFetchOnce(body: unknown, ok = true, status = 200) {
   const spy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
@@ -33,6 +33,15 @@ describe("api client", () => {
     const spy = mockFetchOnce({ routeFound: false, stopNamesInOrder: [], routeNamesUsed: [], estimatedRideMinutes: 0, transferCount: 0 });
     await suggestRoute("A", "B");
     expect(spy).toHaveBeenCalledWith("/api/routes/suggest?originStopId=A&destinationStopId=B", expect.any(Object));
+  });
+
+  it("suggestRouteByName passes origin and destination place names", async () => {
+    const spy = mockFetchOnce({ routeFound: false, stopNamesInOrder: [], routeNamesUsed: [], estimatedRideMinutes: 0, transferCount: 0 });
+    await suggestRouteByName("Ngara", "Limuru Terminus");
+    expect(spy).toHaveBeenCalledWith(
+      "/api/routes/suggest-by-name?originName=Ngara&destinationName=Limuru+Terminus",
+      expect.any(Object),
+    );
   });
 
   it("getCoverage calls /api/coverage", async () => {

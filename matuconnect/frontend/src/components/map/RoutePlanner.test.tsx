@@ -21,7 +21,7 @@ describe("RoutePlanner", () => {
   });
 
   it("renders a not-found message when routeFound is false", async () => {
-    vi.spyOn(api, "suggestRoute").mockResolvedValue({
+    vi.spyOn(api, "suggestRouteByName").mockResolvedValue({
       routeFound: false, stopNamesInOrder: [], stopsInOrder: [], routeNamesUsed: [], estimatedRideMinutes: 0, transferCount: 0,
     });
     render(<RoutePlanner onSelectionChange={() => {}} />);
@@ -35,7 +35,7 @@ describe("RoutePlanner", () => {
   });
 
   it("renders route details when a route is found", async () => {
-    vi.spyOn(api, "suggestRoute").mockResolvedValue({
+    vi.spyOn(api, "suggestRouteByName").mockResolvedValue({
       routeFound: true,
       stopNamesInOrder: ["Kencom", "Museum Hill", "Westlands"],
       stopsInOrder: [
