@@ -92,7 +92,7 @@ export default function AccountMenu() {
         <DropdownMenuItem
           onClick={async () => {
             await signOut();
-            router.push("/");
+            router.push("/login");
           }}
         >
           <LogOut aria-hidden="true" className="mr-2 size-4" />
