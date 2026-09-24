@@ -1,5 +1,19 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ApiError, getStops, searchStops, suggestRoute, suggestRouteByName, getCoverage, sendChatMessage } from "@/lib/api";
+import {
+  ApiError,
+  getStops,
+  searchStops,
+  suggestRoute,
+  suggestRouteByName,
+  getCoverage,
+  getWalkingDistanceCoverage,
+  getAdminRoutes,
+  createAdminRoute,
+  updateAdminRoute,
+  deleteAdminRoute,
+  rebuildNetwork,
+  sendChatMessage,
+} from "@/lib/api";
 
 function mockFetchOnce(body: unknown, ok = true, status = 200) {
   const spy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
@@ -48,6 +62,53 @@ describe("api client", () => {
     const spy = mockFetchOnce({ totalStops: 1, mainNetworkSize: 1, isolatedClusterCount: 0, exampleIsolatedStops: [], worstServedStops: [] });
     await getCoverage();
     expect(spy).toHaveBeenCalledWith("/api/coverage", expect.any(Object));
+  });
+
+  it("getWalkingDistanceCoverage calls the endpoint with no query by default", async () => {
+    const spy = mockFetchOnce({ gaps: [], gridPointsSampled: 0, thresholdMetres: 800 });
+    await getWalkingDistanceCoverage();
+    expect(spy).toHaveBeenCalledWith("/api/coverage/walking-distance", expect.any(Object));
+  });
+
+  it("getWalkingDistanceCoverage passes an explicit threshold", async () => {
+    const spy = mockFetchOnce({ gaps: [], gridPointsSampled: 0, thresholdMetres: 500 });
+    await getWalkingDistanceCoverage(500);
+    expect(spy).toHaveBeenCalledWith("/api/coverage/walking-distance?thresholdMetres=500", expect.any(Object));
+  });
+
+  it("getAdminRoutes calls /api/admin/routes", async () => {
+    const spy = mockFetchOnce([]);
+    await getAdminRoutes();
+    expect(spy).toHaveBeenCalledWith("/api/admin/routes", expect.any(Object));
+  });
+
+  it("createAdminRoute POSTs the route body", async () => {
+    const body = { routeShortName: "99X", routeLongName: "Test", stops: [{ stopId: "A", minutesFromPrevious: null }] };
+    const spy = mockFetchOnce({ routeId: "ADMIN-1", ...body, stopsInOrder: [] });
+    await createAdminRoute(body);
+    expect(spy).toHaveBeenCalledWith("/api/admin/routes", expect.objectContaining({
+      method: "POST",
+      body: JSON.stringify(body),
+    }));
+  });
+
+  it("updateAdminRoute PUTs to the route's id", async () => {
+    const body = { routeShortName: "99X", routeLongName: "Test", stops: [] };
+    const spy = mockFetchOnce({ routeId: "ADMIN-1", ...body, stopsInOrder: [] });
+    await updateAdminRoute("ADMIN-1", body);
+    expect(spy).toHaveBeenCalledWith("/api/admin/routes/ADMIN-1", expect.objectContaining({ method: "PUT" }));
+  });
+
+  it("deleteAdminRoute DELETEs the route's id", async () => {
+    const spy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({ ok: true, status: 204 } as Response);
+    await deleteAdminRoute("ADMIN-1");
+    expect(spy).toHaveBeenCalledWith("/api/admin/routes/ADMIN-1", expect.objectContaining({ method: "DELETE" }));
+  });
+
+  it("rebuildNetwork POSTs to the rebuild endpoint", async () => {
+    const spy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({ ok: true, status: 204 } as Response);
+    await rebuildNetwork();
+    expect(spy).toHaveBeenCalledWith("/api/admin/routes/rebuild", expect.objectContaining({ method: "POST" }));
   });
 
   it("sendChatMessage POSTs the message as JSON", async () => {

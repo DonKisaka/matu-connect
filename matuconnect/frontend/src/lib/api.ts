@@ -1,4 +1,5 @@
 import type {
+  AdminRouteDto,
   AuthUser,
   ChatMessage,
   ChatResponse,
@@ -6,8 +7,10 @@ import type {
   JourneySearchEntry,
   PopularRoute,
   RouteAdviceDto,
+  RouteEditRequest,
   StopDto,
   UsageStats,
+  WalkingDistanceGapDto,
 } from "@/lib/types";
 
 export class ApiError extends Error {
@@ -82,6 +85,12 @@ async function send(
   try {
     return await fetch(path, {
       ...init,
+      // Explicit, after the init spread: relying on a caller to also repeat
+      // the method inside `init` (rather than just passing it as this
+      // function's own `method` parameter) meant a caller that didn't —
+      // logout() among them — silently sent fetch's default GET instead of
+      // the intended request method.
+      method,
       headers,
       signal: controller.signal,
       // Session and CSRF cookies must ride along. Same-origin is the
@@ -153,6 +162,67 @@ export function suggestRouteByName(
 
 export function getCoverage(): Promise<CoverageDto> {
   return request<CoverageDto>("/api/coverage");
+}
+
+/**
+ * Geographic complement to {@link getCoverage} — areas farther than
+ * `thresholdMetres` (default 800m, ~10 minutes' walk) from any stop.
+ */
+export function getWalkingDistanceCoverage(thresholdMetres?: number): Promise<WalkingDistanceGapDto> {
+  const query = thresholdMetres != null ? `?thresholdMetres=${thresholdMetres}` : "";
+  return request<WalkingDistanceGapDto>(`/api/coverage/walking-distance${query}`);
+}
+
+/** Administrator-only route editing. See RouteAdminService for scope and rules. */
+
+export function getAdminRoutes(): Promise<AdminRouteDto[]> {
+  return request<AdminRouteDto[]>("/api/admin/routes");
+}
+
+export function createAdminRoute(body: RouteEditRequest): Promise<AdminRouteDto> {
+  return request<AdminRouteDto>("/api/admin/routes", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function updateAdminRoute(routeId: string, body: RouteEditRequest): Promise<AdminRouteDto> {
+  return request<AdminRouteDto>(`/api/admin/routes/${encodeURIComponent(routeId)}`, {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function deleteAdminRoute(routeId: string): Promise<void> {
+  const path = `/api/admin/routes/${encodeURIComponent(routeId)}`;
+  let res = await send(path, "DELETE");
+
+  if (!res.ok && (res.status === 401 || res.status === 403)) {
+    await refreshCsrfToken();
+    if (csrfToken()) {
+      res = await send(path, "DELETE");
+    }
+  }
+
+  if (!res.ok) {
+    throw new ApiError(res.status, `Delete failed with ${res.status}`);
+  }
+}
+
+/** Publishes every saved edit to the live routing graph. See MatatuGraphHolder. */
+export async function rebuildNetwork(): Promise<void> {
+  let res = await send("/api/admin/routes/rebuild", "POST");
+
+  if (!res.ok && (res.status === 401 || res.status === 403)) {
+    await refreshCsrfToken();
+    if (csrfToken()) {
+      res = await send("/api/admin/routes/rebuild", "POST");
+    }
+  }
+
+  if (!res.ok) {
+    throw new ApiError(res.status, `Rebuild failed with ${res.status}`);
+  }
 }
 
 /**

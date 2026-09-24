@@ -16,4 +16,7 @@ public interface StopTimeRepository extends JpaRepository<StopTime, StopTimeId> 
      * graph builder will use to derive consecutive-stop edges per trip.
      */
     List<StopTime> findByTrip_TripIdOrderById_StopSequenceAsc(String tripId);
+
+    /** Used when replacing an admin-edited route's stop sequence. */
+    void deleteByTrip_TripId(String tripId);
 }

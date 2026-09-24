@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/table";
 import StatTile from "@/components/reports/StatTile";
 import SuccessRate from "@/components/reports/SuccessRate";
+import RouteAdminPanel from "@/components/admin/RouteAdminPanel";
 import { useAuth } from "@/hooks/useAuth";
 import { getPopularRoutes, getUsageStats } from "@/lib/api";
 import type { PopularRoute, UsageStats } from "@/lib/types";
@@ -264,6 +265,13 @@ export default function AdminPage() {
             )}
           </CardContent>
         </Card>
+      </section>
+
+      <section aria-labelledby="route-admin-heading" className="mt-8">
+        <h2 id="route-admin-heading" className="sr-only">
+          Manage routes
+        </h2>
+        <RouteAdminPanel />
       </section>
     </PageShell>
   );

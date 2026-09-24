@@ -11,6 +11,7 @@ const NAIROBI: [number, number] = [-1.2864, 36.8172];
 export interface MatatuMapProps {
   stops: StopDto[];
   coverageSlot?: ReactNode;
+  walkingDistanceSlot?: ReactNode;
   originStopId?: string | null;
   destinationStopId?: string | null;
   onSelectStop?: (stop: StopDto) => void;
@@ -27,6 +28,7 @@ export interface MatatuMapProps {
 export default function MatatuMap({
   stops,
   coverageSlot,
+  walkingDistanceSlot,
   originStopId,
   destinationStopId,
   onSelectStop,
@@ -62,6 +64,7 @@ export default function MatatuMap({
         />
       )}
       {coverageSlot}
+      {walkingDistanceSlot}
     </MapContainer>
   );
 }
