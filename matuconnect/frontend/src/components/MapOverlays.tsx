@@ -3,13 +3,17 @@
 import { Button } from "@/components/ui/button";
 import RoutePlanner from "@/components/map/RoutePlanner";
 import CoverageStats from "@/components/map/CoverageStats";
-import type { CoverageDto, StopDto } from "@/lib/types";
+import type { CoverageDto, StopDto, WalkingDistanceGapDto } from "@/lib/types";
 
 interface Props {
   showCoverage: boolean;
   coverageData: CoverageDto | null;
   coverageError: boolean;
   onToggleCoverage: () => void;
+  showWalkingDistance: boolean;
+  walkingDistanceData: WalkingDistanceGapDto | null;
+  walkingDistanceError: boolean;
+  onToggleWalkingDistance: () => void;
   onSelectionChange: (origin: StopDto | null, destination: StopDto | null) => void;
   onRouteFound?: (stops: StopDto[] | null) => void;
 }
@@ -19,6 +23,10 @@ export default function MapOverlays({
   coverageData,
   coverageError,
   onToggleCoverage,
+  showWalkingDistance,
+  walkingDistanceData,
+  walkingDistanceError,
+  onToggleWalkingDistance,
   onSelectionChange,
   onRouteFound,
 }: Props) {
@@ -36,12 +44,18 @@ export default function MapOverlays({
         </p>
       </div>
 
-      <div className="pointer-events-auto">
+      <div className="pointer-events-auto flex flex-wrap gap-2">
         <Button
           variant={showCoverage ? "default" : "secondary"}
           onClick={onToggleCoverage}
         >
           {showCoverage ? "Hide coverage gaps" : "Show coverage gaps"}
+        </Button>
+        <Button
+          variant={showWalkingDistance ? "default" : "secondary"}
+          onClick={onToggleWalkingDistance}
+        >
+          {showWalkingDistance ? "Hide walking-distance gaps" : "Show walking-distance gaps"}
         </Button>
       </div>
       <div className="pointer-events-auto">
@@ -55,6 +69,24 @@ export default function MapOverlays({
       {showCoverage && coverageData && (
         <div className="pointer-events-auto">
           <CoverageStats data={coverageData} />
+        </div>
+      )}
+      {showWalkingDistance && walkingDistanceError && (
+        <div className="pointer-events-auto rounded bg-red-600 px-3 py-1 text-sm text-white">
+          Could not load walking-distance data.
+        </div>
+      )}
+      {showWalkingDistance && walkingDistanceData && (
+        <div className="pointer-events-auto max-w-64 rounded-lg border bg-card/95 px-3 py-2 text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
+          <p className="flex items-center gap-1.5">
+            <span
+              aria-hidden="true"
+              className="inline-block size-2.5 rounded-full"
+              style={{ backgroundColor: "var(--color-marker-walk-gap)" }}
+            />
+            {walkingDistanceData.gaps.length} of {walkingDistanceData.gridPointsSampled} sampled
+            points are beyond {Math.round(walkingDistanceData.thresholdMetres)}m of any stop
+          </p>
         </div>
       )}
     </div>

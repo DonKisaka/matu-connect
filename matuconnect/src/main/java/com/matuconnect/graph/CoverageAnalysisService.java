@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CoverageAnalysisService {
 
-    private final Graph<String, MatatuEdge> matatuGraph;
+    private final MatatuGraphHolder matatuGraphHolder;
 
     /**
      * Stops in the bottom this-fraction of total degree (in-degree +
@@ -56,8 +56,10 @@ public class CoverageAnalysisService {
     private double poorlyServedPercentile;
 
     public CoverageGapResult analyzeCoverage() {
-        List<IsolatedCluster> isolatedClusters = findIsolatedClusters();
-        List<PoorlyServedStop> poorlyServedStops = findPoorlyServedStops();
+        Graph<String, MatatuEdge> matatuGraph = matatuGraphHolder.get();
+
+        List<IsolatedCluster> isolatedClusters = findIsolatedClusters(matatuGraph);
+        List<PoorlyServedStop> poorlyServedStops = findPoorlyServedStops(matatuGraph);
 
         int totalStops = matatuGraph.vertexSet().size();
         int mainComponentSize = totalStops - isolatedClusters.stream()
@@ -77,7 +79,7 @@ public class CoverageAnalysisService {
      * matches how the real matatu network behaves: one large mutually-
      * reachable core, with the rest being genuine gaps.
      */
-    private List<IsolatedCluster> findIsolatedClusters() {
+    private List<IsolatedCluster> findIsolatedClusters(Graph<String, MatatuEdge> matatuGraph) {
         KosarajuStrongConnectivityInspector<String, MatatuEdge> inspector =
                 new KosarajuStrongConnectivityInspector<>(matatuGraph);
 
@@ -102,7 +104,7 @@ public class CoverageAnalysisService {
      * Ranks every stop by total degree and returns the bottom
      * {@link #poorlyServedPercentile} fraction.
      */
-    private List<PoorlyServedStop> findPoorlyServedStops() {
+    private List<PoorlyServedStop> findPoorlyServedStops(Graph<String, MatatuEdge> matatuGraph) {
         List<PoorlyServedStop> allStops = matatuGraph.vertexSet().stream()
                 .map(stopId -> new PoorlyServedStop(
                         stopId,

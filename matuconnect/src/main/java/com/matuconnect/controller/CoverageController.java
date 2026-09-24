@@ -3,10 +3,12 @@ package com.matuconnect.controller;
 
 import com.matuconnect.graph.CoverageAnalysisService;
 import com.matuconnect.graph.CoverageGapResult;
+import com.matuconnect.graph.WalkingDistanceCoverageService;
 import com.matuconnect.repository.StopRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -28,7 +30,11 @@ public class CoverageController {
 
     private static final int MAX_STOPS_FOR_MAP_DISPLAY = 20;
 
+    /** ~10 minutes' walk, the default used when the caller doesn't override it. */
+    private static final double DEFAULT_WALK_THRESHOLD_METRES = 800.0;
+
     private final CoverageAnalysisService coverageAnalysisService;
+    private final WalkingDistanceCoverageService walkingDistanceCoverageService;
     private final StopRepository stopRepository;
 
     @GetMapping
@@ -53,6 +59,26 @@ public class CoverageController {
                 isolatedStops,
                 worstServed
         );
+    }
+
+    /**
+     * Geographic complement to {@link #coverageSummary()} — areas far from
+     * any stop, rather than stops poorly placed within the graph. See
+     * {@link WalkingDistanceCoverageService} for why this is a sampled grid
+     * rather than a per-stop or per-address analysis.
+     */
+    @GetMapping("/walking-distance")
+    public WalkingDistanceGapDto walkingDistance(
+            @RequestParam(required = false) Double thresholdMetres) {
+        double threshold = thresholdMetres != null ? thresholdMetres : DEFAULT_WALK_THRESHOLD_METRES;
+        WalkingDistanceCoverageService.WalkingDistanceGapResult result =
+                walkingDistanceCoverageService.analyzeWalkingDistance(threshold);
+
+        List<WalkingDistanceGapDto.GapPointDto> gaps = result.gaps().stream()
+                .map(g -> new WalkingDistanceGapDto.GapPointDto(g.latitude(), g.longitude(), g.nearestStopMetres()))
+                .toList();
+
+        return new WalkingDistanceGapDto(gaps, result.gridPointsSampled(), result.thresholdMetres());
     }
 
     private StopDto resolveStop(String stopId) {

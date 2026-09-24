@@ -78,15 +78,18 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,
                                 "/api/stops/**",
                                 "/api/routes/**",
-                                "/api/coverage").permitAll()
+                                "/api/coverage",
+                                "/api/coverage/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/chat").permitAll()
 
                         // Registration and sign-in must be reachable signed out.
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
 
-                        // Reporting is an administrator concern. Namespaced so this
-                        // stays one matcher rather than annotations scattered about.
+                        // Reporting and route editing are administrator concerns.
+                        // Namespaced so this stays one matcher rather than
+                        // annotations scattered about.
                         .requestMatchers("/api/reports/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                         // Anything personal requires an account.
                         .requestMatchers("/api/me/**").authenticated()

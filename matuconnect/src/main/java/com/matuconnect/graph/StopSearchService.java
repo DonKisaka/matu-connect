@@ -37,7 +37,7 @@ import java.util.List;
 public class StopSearchService {
 
     private final StopRepository stopRepository;
-    private final Graph<String, MatatuEdge> matatuGraph;
+    private final MatatuGraphHolder matatuGraphHolder;
 
     /**
      * Stops whose name contains {@code query} (case-insensitive) and which
@@ -62,6 +62,7 @@ public class StopSearchService {
      * the network graph.
      */
     public boolean isServed(String stopId) {
+        Graph<String, MatatuEdge> matatuGraph = matatuGraphHolder.get();
         return matatuGraph.containsVertex(stopId) && matatuGraph.degreeOf(stopId) > 0;
     }
 }

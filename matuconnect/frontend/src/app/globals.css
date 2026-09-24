@@ -111,6 +111,7 @@
   --color-marker-poor: #d97706;         /* poorly-served stop */
   --color-marker-origin: #16a34a;       /* trip origin */
   --color-marker-destination: #7c3aed;  /* trip destination */
+  --color-marker-walk-gap: #be123c;     /* beyond walking distance of any stop */
 }
 
 .dark {
@@ -156,6 +157,7 @@
   --color-marker-poor: #fbbf24;
   --color-marker-origin: #4ade80;
   --color-marker-destination: #a78bfa;
+  --color-marker-walk-gap: #fb7185;
 }
 
 @layer base {

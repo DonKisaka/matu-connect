@@ -48,7 +48,7 @@ public class RoutingService {
      */
     private static final int TRANSFER_PENALTY_SECONDS = 900;
 
-    private final Graph<String, MatatuEdge> matatuGraph;
+    private final MatatuGraphHolder matatuGraphHolder;
 
     /**
      * Search state: a physical stop plus the route most recently
@@ -67,6 +67,8 @@ public class RoutingService {
     }
 
     public Optional<RouteResult> findShortestRoute(String originStopId, String destinationStopId) {
+        Graph<String, MatatuEdge> matatuGraph = matatuGraphHolder.get();
+
         if (!matatuGraph.containsVertex(originStopId)) {
             log.warn("Origin stop {} not found in graph.", originStopId);
             return Optional.empty();

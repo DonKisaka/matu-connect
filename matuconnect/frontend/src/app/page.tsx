@@ -8,16 +8,22 @@ import ChatDock from "@/components/ChatDock";
 import AccountMenu from "@/components/AccountMenu";
 import { useStops } from "@/hooks/useStops";
 import { useCoverage } from "@/hooks/useCoverage";
+import { useWalkingDistanceCoverage } from "@/hooks/useWalkingDistanceCoverage";
 import type { StopDto } from "@/lib/types";
 
 const CoverageLayer = dynamic(() => import("@/components/map/CoverageLayer"), {
+  ssr: false,
+});
+const WalkingDistanceLayer = dynamic(() => import("@/components/map/WalkingDistanceLayer"), {
   ssr: false,
 });
 
 export default function Home() {
   const { stops, status: stopsStatus, reload } = useStops();
   const coverage = useCoverage();
+  const walkingDistance = useWalkingDistanceCoverage();
   const [showCoverage, setShowCoverage] = useState(false);
+  const [showWalkingDistance, setShowWalkingDistance] = useState(false);
   const [originId, setOriginId] = useState<string | null>(null);
   const [destId, setDestId] = useState<string | null>(null);
   const [routeStops, setRouteStops] = useState<StopDto[] | null>(null);
@@ -35,6 +41,14 @@ export default function Home() {
     setShowCoverage(next);
     if (next && coverage.status === "idle") {
       coverage.load();
+    }
+  }
+
+  function onToggleWalkingDistance() {
+    const next = !showWalkingDistance;
+    setShowWalkingDistance(next);
+    if (next && walkingDistance.status === "idle") {
+      walkingDistance.load();
     }
   }
 
@@ -65,6 +79,10 @@ export default function Home() {
           coverageData={showCoverage ? coverage.data : null}
           coverageError={coverage.status === "error"}
           onToggleCoverage={onToggleCoverage}
+          showWalkingDistance={showWalkingDistance}
+          walkingDistanceData={showWalkingDistance ? walkingDistance.data : null}
+          walkingDistanceError={walkingDistance.status === "error"}
+          onToggleWalkingDistance={onToggleWalkingDistance}
           onSelectionChange={onSelectionChange}
           onRouteFound={setRouteStops}
         />
@@ -76,6 +94,11 @@ export default function Home() {
           coverageSlot={
             showCoverage && coverage.data ? (
               <CoverageLayer data={coverage.data} />
+            ) : undefined
+          }
+          walkingDistanceSlot={
+            showWalkingDistance && walkingDistance.data ? (
+              <WalkingDistanceLayer data={walkingDistance.data} />
             ) : undefined
           }
         />
