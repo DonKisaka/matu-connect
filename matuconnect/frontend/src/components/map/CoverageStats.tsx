@@ -10,7 +10,7 @@ export default function CoverageStats({ data }: { data: CoverageDto }) {
     ["Isolated clusters", data.isolatedClusterCount],
   ];
   return (
-    <Card className="w-56">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="text-sm">Network coverage</CardTitle>
       </CardHeader>
