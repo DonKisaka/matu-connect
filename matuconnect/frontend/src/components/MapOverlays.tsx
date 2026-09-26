@@ -1,6 +1,9 @@
 "use client";
 
+import { useState } from "react";
+import { LayoutPanelLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import RoutePlanner from "@/components/map/RoutePlanner";
 import CoverageStats from "@/components/map/CoverageStats";
 import type { CoverageDto, StopDto, WalkingDistanceGapDto } from "@/lib/types";
@@ -18,7 +21,47 @@ interface Props {
   onRouteFound?: (stops: StopDto[] | null) => void;
 }
 
-export default function MapOverlays({
+export default function MapOverlays(props: Props) {
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  return (
+    <>
+      {/* Desktop / tablet: the map tools sit as an always-visible floating
+          stack, top-left. Below lg, that same stack would eat most of a
+          phone screen's width and height and bury the map behind it — the
+          one thing this screen exists to show — so it's replaced with a
+          trigger + sheet instead, the same pattern already used for chat. */}
+      <div className="pointer-events-none absolute left-3 top-3 z-[1000] hidden max-h-[calc(100%-1.5rem)] w-72 flex-col gap-2 overflow-y-auto lg:flex">
+        <OverlayContent {...props} />
+      </div>
+
+      <div className="lg:hidden">
+        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+          <SheetTrigger
+            render={
+              <Button
+                size="icon"
+                variant="secondary"
+                className="fixed left-3 top-3 z-[1000] rounded-full shadow-lg"
+              />
+            }
+          >
+            <LayoutPanelLeft aria-hidden="true" className="size-4" />
+            <span className="sr-only">Map tools</span>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-full overflow-y-auto p-4 sm:w-80">
+            <SheetTitle className="sr-only">Map tools</SheetTitle>
+            <div className="flex flex-col gap-2">
+              <OverlayContent {...props} />
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+    </>
+  );
+}
+
+function OverlayContent({
   showCoverage,
   coverageData,
   coverageError,
@@ -31,13 +74,13 @@ export default function MapOverlays({
   onRouteFound,
 }: Props) {
   return (
-    <div className="pointer-events-none absolute left-3 top-3 z-[1000] flex max-h-[calc(100%-1.5rem)] flex-col gap-2 overflow-y-auto">
+    <>
       {/*
         States the map's purpose before anyone has to ask what it is for:
         see the network, plan a route, or ask the assistant — the same
         three jobs the chat panel does conversationally.
       */}
-      <div className="pointer-events-auto max-w-72 rounded-lg border bg-card/95 px-3 py-2 shadow-sm backdrop-blur-sm">
+      <div className="pointer-events-auto rounded-lg border bg-card/95 px-3 py-2 shadow-sm backdrop-blur-sm">
         <p className="text-sm font-semibold text-foreground">MatuConnect</p>
         <p className="text-xs text-muted-foreground">
           Explore Nairobi&apos;s matatu network, plan a route, or ask the assistant.
@@ -77,11 +120,11 @@ export default function MapOverlays({
         </div>
       )}
       {showWalkingDistance && walkingDistanceData && (
-        <div className="pointer-events-auto max-w-64 rounded-lg border bg-card/95 px-3 py-2 text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
+        <div className="pointer-events-auto rounded-lg border bg-card/95 px-3 py-2 text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
           <p className="flex items-center gap-1.5">
             <span
               aria-hidden="true"
-              className="inline-block size-2.5 rounded-full"
+              className="inline-block size-2.5 shrink-0 rounded-full"
               style={{ backgroundColor: "var(--color-marker-walk-gap)" }}
             />
             {walkingDistanceData.gaps.length} of {walkingDistanceData.gridPointsSampled} sampled
@@ -89,6 +132,6 @@ export default function MapOverlays({
           </p>
         </div>
       )}
-    </div>
+    </>
   );
 }

@@ -48,7 +48,7 @@ export default function RoutePlanner({ onSelectionChange, onRouteFound }: Props)
   }
 
   return (
-    <Card className="w-72">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="text-sm">Plan a route</CardTitle>
       </CardHeader>
